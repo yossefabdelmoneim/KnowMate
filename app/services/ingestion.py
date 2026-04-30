@@ -5,6 +5,7 @@ from app.db.vector_store import get_vector_store
 
 
 def load_document(path: str):
+    #Detects file type and then load it
     if path.endswith(".pdf"):
         return PyPDFLoader(path).load()
     elif path.endswith(".docx"):
@@ -22,11 +23,11 @@ def split_docs(docs):
 
 
 def add_metadata(chunks, company_id):
-    doc_id = str(uuid.uuid4())
+    doc_id = str(uuid.uuid4()) # Generate a unique document ID
 
     for i, c in enumerate(chunks):
         c.metadata.update({
-            "doc_id": doc_id,
+            "doc_id": doc_id, #All chunks from the same document get the same ID
             "chunk_id": i,
             "company_id": company_id
         })
@@ -41,7 +42,7 @@ def ingest(path: str, company_id: str):
 
     db = get_vector_store()
     db.add_documents(chunks)
-    db.persist()
+    db.persist() #Save to disk
 
     return {
         "doc_id": chunks[0].metadata["doc_id"],
