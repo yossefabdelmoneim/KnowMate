@@ -1,0 +1,13 @@
+User uploads PDF/DOCX/TXT
+    ↓
+POST /documents/upload (documents.py)
+    ↓
+Save file to uploads/ folder
+    ↓
+Call ingest() function (ingestion.py)
+    ↓
+Load file → Split into chunks → Add metadata → Store in Chroma
+    ↓
+Return {doc_id, chunk_count} to user
+    ↓
+Vector DB persisted to ./chroma_db/
