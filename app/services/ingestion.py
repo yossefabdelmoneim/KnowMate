@@ -1,5 +1,5 @@
 import uuid
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader, UnstructuredExcelLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from app.db.vector_store import get_vector_store
 
@@ -10,6 +10,8 @@ def load_document(path: str):
         return PyPDFLoader(path).load()
     elif path.endswith(".docx"):
         return Docx2txtLoader(path).load()
+    elif path.endswith(".xlsx") or path.endswith(".xls"):
+        return UnstructuredExcelLoader(path, mode="elements").load()
     else:
         return TextLoader(path).load()
 
