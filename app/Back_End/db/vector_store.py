@@ -4,7 +4,7 @@ except ImportError:
     from langchain_community.vectorstores import Chroma
 
 from langchain_huggingface import HuggingFaceEmbeddings
-from Back_End.core.config import settings
+from app.Back_End.core.config import settings
 
 # Cache embedding (avoid reloading model every time)
 _embedding = None
