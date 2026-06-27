@@ -11,6 +11,10 @@ from app.Back_End.db import models
 
 Base.metadata.create_all(bind=engine)
 
+
+
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
 
 app.include_router(documents.router, prefix="/documents")
