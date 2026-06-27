@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from Back_End.services.retrieval import search_mmr
+from app.Back_End.services.retrieval import search_mmr
 
 router = APIRouter()
 

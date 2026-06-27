@@ -14,7 +14,7 @@ node_modules/
 uploads/
 
 # Chroma DB (optional)
-chroma_db/
+app/Back_End/chroma_db/
 
 # Environment variables
 .env

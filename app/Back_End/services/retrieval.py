@@ -1,4 +1,4 @@
-from Back_End.db.vector_store import get_vector_store
+from app.Back_End.db.vector_store import get_vector_store
 
 def search(query: str, company_id: str, k: int =5):
     db = get_vector_store()

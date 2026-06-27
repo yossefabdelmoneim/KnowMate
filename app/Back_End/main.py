@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-
 from app.Back_End.api import chat, search
 from app.Back_End.api.routes import documents
 from app.Back_End.api.routes import documents

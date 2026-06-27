@@ -1,7 +1,7 @@
 import uuid
 from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader, UnstructuredExcelLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from Back_End.db.vector_store import get_vector_store
+from app.Back_End.db.vector_store import get_vector_store
 
 
 def load_document(path: str):

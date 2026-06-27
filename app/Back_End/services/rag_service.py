@@ -1,6 +1,6 @@
-from Back_End.core.llm import get_llm
-from Back_End.prompts.customer_agent import RAG_PROMPT
-from Back_End.services.retrieval import search_mmr
+from app.Back_End.core.llm import get_llm
+from app.Back_End.prompts.customer_agent import RAG_PROMPT
+from app.Back_End.services.retrieval import search_mmr
 
 
 def format_docs(docs):
