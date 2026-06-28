@@ -5,6 +5,17 @@ from sqlalchemy.orm import relationship
 from app.db.session import Base
 
 
+class Company(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    users = relationship("User", back_populates="company")
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -12,8 +23,10 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    company = relationship("Company", back_populates="users")
     documents = relationship("Document", back_populates="user")
     chat_sessions = relationship("ChatSession", back_populates="user")
 
