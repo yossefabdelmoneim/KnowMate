@@ -11,7 +11,7 @@ __pycache__/
 node_modules/
 
 # Uploads
-uploads/
+app/Back_End/uploads/
 
 # Chroma DB (optional)
 app/Back_End/chroma_db/
@@ -19,3 +19,4 @@ app/Back_End/chroma_db/
 # Environment variables
 .env
 echo "chroma_db/" >> .gitignore
+/app/generated/prisma
