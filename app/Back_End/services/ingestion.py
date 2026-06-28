@@ -28,8 +28,8 @@ def split_docs(docs):
     return splitter.split_documents(docs)
 
 
-def add_metadata(chunks, company_id):
-    doc_id = str(uuid.uuid4()) # Generate a unique document ID
+def add_metadata(chunks, company_id, doc_id=None):
+    doc_id = doc_id or str(uuid.uuid4()) # Generate a unique document ID
 
     for i, c in enumerate(chunks):
         c.metadata.update({
@@ -41,15 +41,17 @@ def add_metadata(chunks, company_id):
     return chunks
 
 
-def ingest(path: str, company_id: str):
+def build_chunks(path: str, company_id: str, doc_id: str | None = None):
     docs = load_document(path)
     chunks = split_docs(docs)
 
     if not chunks:
         raise ValueError("Document did not contain any readable text.")
 
-    chunks = add_metadata(chunks, company_id)
+    return add_metadata(chunks, company_id, doc_id)
 
+
+def add_chunks(chunks):
     db = get_vector_store()
     db.add_documents(chunks)
 
@@ -57,3 +59,53 @@ def ingest(path: str, company_id: str):
         "doc_id": chunks[0].metadata["doc_id"],
         "chunks": len(chunks)
     }
+
+
+def ingest(path: str, company_id: str, doc_id: str | None = None):
+    chunks = build_chunks(path, company_id, doc_id)
+    return add_chunks(chunks)
+
+
+def get_document_chunk_ids(doc_id: str, company_id: str | None = None):
+    db = get_vector_store()
+    where = {"doc_id": doc_id}
+    result = db.get(where=where, include=["metadatas"])
+
+    ids = result.get("ids", [])
+    metadatas = result.get("metadatas", [])
+
+    if company_id is not None:
+        ids = [
+            chunk_id
+            for chunk_id, metadata in zip(ids, metadatas)
+            if metadata.get("company_id") == company_id
+        ]
+
+    return ids
+
+
+def delete_chunk_ids(ids):
+    if not ids:
+        return 0
+
+    db = get_vector_store()
+    db.delete(ids=ids)
+    return len(ids)
+
+
+def delete_document(doc_id: str, company_id: str | None = None):
+    ids = get_document_chunk_ids(doc_id, company_id)
+    return delete_chunk_ids(ids)
+
+
+def replace_document(path: str, company_id: str, doc_id: str):
+    old_ids = get_document_chunk_ids(doc_id, company_id)
+
+    if not old_ids:
+        return None
+
+    chunks = build_chunks(path, company_id, doc_id)
+    result = add_chunks(chunks)
+    result["replaced_chunks"] = delete_chunk_ids(old_ids)
+
+    return result
