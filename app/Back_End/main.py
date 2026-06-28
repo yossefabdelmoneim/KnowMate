@@ -1,11 +1,9 @@
 from fastapi import FastAPI
-from app.Back_End.api import chat, search
-from app.Back_End.api.routes import documents
+from app.Back_End.api.routes import chat, search
 from app.Back_End.api.routes import documents
 from app.Back_End.api.routes import auth
 from app.Back_End.api.routes import companies
 from app.Back_End.db.session import engine, Base
-from app.Back_End.db import models
 
 
 Base.metadata.create_all(bind=engine)
