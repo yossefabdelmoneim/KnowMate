@@ -8,12 +8,14 @@ class UserCreate(BaseModel):
     email: str
     password: str
     full_name: Optional[str] = None
+    role: str = "employee"
 
 
 class UserOut(BaseModel):
     id: int
     email: str
     full_name: Optional[str] = None
+    role: str
     created_at: datetime
 
     class Config:
@@ -23,3 +25,8 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class RoleUpdate(BaseModel):
+    user_id: int
+    role: str

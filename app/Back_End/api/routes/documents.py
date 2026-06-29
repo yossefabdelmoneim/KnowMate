@@ -3,7 +3,12 @@ import shutil
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query, Depends
+from sqlalchemy.orm import Session
+
+from app.Back_End.db import models
+from app.Back_End.db.session import get_db
+from app.Back_End.dependencies import get_current_user
 from app.Back_End.services.ingestion import delete_document, ingest, replace_document
 
 router = APIRouter()
@@ -43,23 +48,48 @@ def save_upload(file: UploadFile) -> Path:
 @router.post("/upload")
 async def upload(
     file: UploadFile = File(...),
-    company_id: str = Form(...)
+    company_id: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
     file_path = save_upload(file)
 
     try:
-        return ingest(str(file_path), company_id)
+        result = ingest(str(file_path), company_id)
     except ValueError as exc:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    doc = models.Document(
+        user_id=current_user.id,
+        company_id=company_id,
+        filename=file.filename,
+        file_path=str(file_path),
+        doc_id=result["doc_id"],
+        chunks=result["chunks"],
+    )
+    db.add(doc)
+    db.commit()
+
+    return result
+
 
 @router.delete("/{doc_id}")
-def delete(doc_id: str, company_id: str = Query(...)):
+def delete(
+    doc_id: str,
+    company_id: str = Query(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     deleted_chunks = delete_document(doc_id, company_id)
 
     if deleted_chunks == 0:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    doc = db.query(models.Document).filter(models.Document.doc_id == doc_id).first()
+    if doc:
+        db.delete(doc)
+        db.commit()
 
     return {
         "doc_id": doc_id,
@@ -71,7 +101,9 @@ def delete(doc_id: str, company_id: str = Query(...)):
 async def update(
     doc_id: str,
     file: UploadFile = File(...),
-    company_id: str = Form(...)
+    company_id: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
     file_path = save_upload(file)
 
@@ -84,5 +116,12 @@ async def update(
     if result is None:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=404, detail="Document not found")
+
+    doc = db.query(models.Document).filter(models.Document.doc_id == doc_id).first()
+    if doc:
+        doc.filename = file.filename
+        doc.file_path = str(file_path)
+        doc.chunks = result["chunks"]
+        db.commit()
 
     return result

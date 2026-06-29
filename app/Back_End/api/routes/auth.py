@@ -6,7 +6,7 @@ from app.Back_End.core.security import create_access_token, hash_password, verif
 from app.Back_End.db import models
 from app.Back_End.db.session import get_db
 from app.Back_End.dependencies import get_current_user
-from app.Back_End.schemas.auth import Token, UserCreate, UserOut
+from app.Back_End.schemas.auth import Token, UserCreate, UserOut, RoleUpdate
 
 
 router = APIRouter()
@@ -29,6 +29,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         email=user_data.email,
         hashed_password=hash_password(user_data.password),
         full_name=user_data.full_name,
+        role=user_data.role,
     )
     db.add(user)
     db.commit()
@@ -62,3 +63,22 @@ def login(
 @router.get("/me", response_model=UserOut)
 def me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+
+@router.patch("/role", response_model=UserOut)
+def update_role(
+    data: RoleUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can change roles")
+
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.role = data.role
+    db.commit()
+    db.refresh(user)
+    return user
