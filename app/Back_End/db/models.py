@@ -24,6 +24,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
     company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
+    role = Column(String(50), nullable=False, default="employee")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="users")

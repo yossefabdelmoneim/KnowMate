@@ -5,9 +5,10 @@ from typing import Optional, List
 
 from app.Back_End.db import models
 from app.Back_End.db.session import get_db
+from app.Back_End.dependencies import get_current_user, require_roles
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 class CompanyCreate(BaseModel):
@@ -24,7 +25,7 @@ class CompanyOut(BaseModel):
         from_attributes = True
 
 
-@router.post("/", response_model=CompanyOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=CompanyOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles(["admin","manager"]))])
 def create_company(data: CompanyCreate, db: Session = Depends(get_db)):
     company = models.Company(name=data.name, description=data.description)
     db.add(company)
@@ -33,12 +34,12 @@ def create_company(data: CompanyCreate, db: Session = Depends(get_db)):
     return company
 
 
-@router.get("/", response_model=List[CompanyOut])
+@router.get("/", response_model=List[CompanyOut], dependencies=[Depends(require_roles(["admin","manager"]))])
 def list_companies(db: Session = Depends(get_db)):
     return db.query(models.Company).all()
 
 
-@router.get("/{company_id}", response_model=CompanyOut)
+@router.get("/{company_id}", response_model=CompanyOut, dependencies=[Depends(require_roles(["admin","manager"]))])
 def get_company(company_id: int, db: Session = Depends(get_db)):
     company = db.query(models.Company).filter(models.Company.id == company_id).first()
     if not company:
