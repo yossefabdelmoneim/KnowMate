@@ -1,12 +1,16 @@
 import re
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 
 
 class AdminInfo(BaseModel):
-    first_name: str
-    last_name: str
-    email: str
-    password: str
+    first_name: str = Field(..., description="Admin's first name", example="John")
+    last_name: str = Field(..., description="Admin's last name", example="Doe")
+    email: str = Field(..., description="Admin's email address", example="admin@company.com")
+    password: str = Field(
+        ...,
+        description="Admin's password (min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char)",
+        example="SecurePass123!"
+    )
 
     @field_validator("email")
     @classmethod
@@ -32,16 +36,46 @@ class AdminInfo(BaseModel):
 
 
 class CompanyRegistrationRequest(BaseModel):
-    company_name: str
-    admin: AdminInfo
+    company_name: str = Field(..., description="Company name", example="Acme Corporation")
+    admin: AdminInfo = Field(..., description="Admin user information")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "company_name": "Acme Corporation",
+                "admin": {
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "admin@acme.com",
+                    "password": "SecurePass123!"
+                }
+            }
+        }
 
 
 class RegistrationResponse(BaseModel):
-    message: str
-    email: str
+    message: str = Field(..., description="Status message")
+    email: str = Field(..., description="Admin email for verification")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "message": "Registration initiated. Please check your email to verify.",
+                "email": "admin@acme.com"
+            }
+        }
 
 
 class VerificationResponse(BaseModel):
-    message: str
-    company_name: str
-    admin_email: str
+    message: str = Field(..., description="Status message")
+    company_name: str = Field(..., description="Verified company name")
+    admin_email: str = Field(..., description="Admin email")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "message": "Company verified and created successfully. You can now log in.",
+                "company_name": "Acme Corporation",
+                "admin_email": "admin@acme.com"
+            }
+        }

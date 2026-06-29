@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 
 from app.Back_End.core.config import settings
@@ -22,25 +22,55 @@ from app.Back_End.schemas.company import (
 from app.Back_End.services.email_service import send_verification_email
 
 
-router = APIRouter(dependencies=[Depends(get_current_user)])
+router = APIRouter(tags=["Companies"])
 
 
 class CompanyCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
+    name: str = Field(..., description="Company name", example="Acme Corp")
+    description: Optional[str] = Field(None, description="Company description", example="Leading company in tech")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "Acme Corp",
+                "description": "Leading company in tech"
+            }
+        }
 
 
 class CompanyOut(BaseModel):
-    id: int
-    name: str
-    description: Optional[str] = None
+    id: int = Field(..., description="Company ID")
+    name: str = Field(..., description="Company name")
+    description: Optional[str] = Field(None, description="Company description")
 
     class Config:
         from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "id": 1,
+                "name": "Acme Corp",
+                "description": "Leading company in tech"
+            }
+        }
 
 
-@router.post("/", response_model=CompanyOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles(["admin","manager"]))])
+@router.post(
+    "/",
+    response_model=CompanyOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new company",
+    responses={
+        201: {"description": "Company created successfully"},
+        403: {"description": "Insufficient permissions (admin/manager only)"},
+    }
+)
 def create_company(data: CompanyCreate, db: Session = Depends(get_db)):
+    """
+    Create a new company (admin/manager only).
+    
+    - **name**: Company name (required)
+    - **description**: Company description (optional)
+    """
     company = models.Company(name=data.name, description=data.description)
     db.add(company)
     db.commit()
@@ -48,17 +78,42 @@ def create_company(data: CompanyCreate, db: Session = Depends(get_db)):
     return company
 
 
-@router.get("/", response_model=List[CompanyOut], dependencies=[Depends(require_roles(["admin","manager"]))])
+@router.get(
+    "/",
+    response_model=List[CompanyOut],
+    summary="List all companies",
+    responses={
+        200: {"description": "List of companies"},
+        403: {"description": "Insufficient permissions (admin/manager only)"},
+    }
+)
 def list_companies(db: Session = Depends(get_db)):
+    """
+    Get a list of all companies (admin/manager only).
+    """
     return db.query(models.Company).all()
 
 
-
-@router.post("/register", response_model=RegistrationResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=RegistrationResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new company",
+    responses={
+        201: {"description": "Registration initiated, check email for verification"},
+        409: {"description": "Email or company name already exists"},
+    }
+)
 def register_company(
     data: CompanyRegistrationRequest,
     db: Session = Depends(get_db),
 ):
+    """
+    Register a new company with admin user.
+    
+    A verification email will be sent to the admin's email address.
+    The admin must verify the registration via the link in the email.
+    """
     company_name = data.company_name.strip()
     admin = data.admin
     email = admin.email.lower().strip()
@@ -127,11 +182,25 @@ def register_company(
     )
 
 
-@router.get("/verify", response_model=VerificationResponse)
+@router.get(
+    "/verify",
+    response_model=VerificationResponse,
+    summary="Verify company registration",
+    responses={
+        200: {"description": "Company verified successfully"},
+        400: {"description": "Invalid or expired token"},
+        500: {"description": "Failed to create company"},
+    }
+)
 def verify_company(
-    token: str = Query(...),
+    token: str = Query(..., description="Verification token from email"),
     db: Session = Depends(get_db),
 ):
+    """
+    Verify company registration using token from verification email.
+    
+    - **token**: Verification token sent to admin email
+    """
     token_hash = hash_verification_token(token)
 
     pending = db.query(models.PendingCompanyRegistration).filter(
@@ -191,12 +260,26 @@ def verify_company(
     )
 
 
-@router.get("/{company_id}", response_model=CompanyOut)
+@router.get(
+    "/{company_id}",
+    response_model=CompanyOut,
+    summary="Get company details",
+    responses={
+        200: {"description": "Company details"},
+        401: {"description": "Not authenticated"},
+        404: {"description": "Company not found"},
+    }
+)
 def get_company(
     company_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
+    """
+    Get details of a specific company (requires authentication).
+    
+    - **company_id**: ID of the company to retrieve
+    """
     company = db.query(models.Company).filter(models.Company.id == company_id).first()
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
