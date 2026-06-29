@@ -8,11 +8,12 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     question: str
     company_id: str
+    agent_type: str = "default"
 
 
 @router.post("/chat")
 def chat(request: ChatRequest):
-    rag = RAGService()
+    rag = RAGService(agent_type=request.agent_type)
 
     return rag.generate_answer(
         question=request.question,
