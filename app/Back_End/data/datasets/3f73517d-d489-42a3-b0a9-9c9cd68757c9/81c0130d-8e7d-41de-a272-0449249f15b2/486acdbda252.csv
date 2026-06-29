@@ -1,0 +1,7 @@
+city,revenue,population,growth_rate
+Cairo,1200000,10000000,0.08
+Giza,620000,4000000,0.05
+Alexandria,310000,1500000,0.03
+Aswan,180000,300000,-0.02
+Luxor,95000,200000,0.01
+Port Said,250000,800000,0.04
