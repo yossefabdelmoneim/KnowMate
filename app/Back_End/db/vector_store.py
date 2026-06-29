@@ -1,28 +1,103 @@
-try:
-    from langchain_chroma import Chroma
-except ImportError:
-    from langchain_community.vectorstores import Chroma
+import chromadb
+import uuid
 
-from langchain_huggingface import HuggingFaceEmbeddings
-from app.Back_End.core.config import settings
+client = chromadb.PersistentClient(path="./chroma_db")
 
-# Cache embedding (avoid reloading model every time)
-_embedding = None
-
-def get_embedding():
-    global _embedding
-
-    if _embedding is None:
-        _embedding = HuggingFaceEmbeddings(
-            model_name=settings.EMBEDDING_MODEL
-        )
-
-    return _embedding
+documents_collection = client.get_or_create_collection(
+    "hr_documents"
+)
 
 
-def get_vector_store(collection_name: str = "documents") :
-    return Chroma(
-        persist_directory=settings.CHROMA_DIR,
-        embedding_function=get_embedding(),
-        collection_name=collection_name
+def delete_documents_by_source(
+    source: str,
+    company_id: str
+):
+    """
+    Delete all chunks for the same file
+    belonging to the same company.
+    """
+
+    results = documents_collection.get(
+        where={
+            "$and": [
+                {"company_id": company_id},
+                {"source": source}
+            ]
+        }
     )
+
+    ids = results.get("ids", [])
+
+    if ids:
+        documents_collection.delete(ids=ids)
+
+
+def add_documents(
+    chunks: list[str],
+    source: str,
+    company_id: str
+):
+    """
+    Store document chunks with metadata.
+    If the same company uploads the same file again,
+    the old chunks are removed first.
+    """
+
+    # حذف النسخة القديمة
+    delete_documents_by_source(
+        source=source,
+        company_id=company_id
+    )
+
+    ids = []
+    metadatas = []
+
+    for i, chunk in enumerate(chunks):
+
+        ids.append(str(uuid.uuid4()))
+
+        metadatas.append({
+            "company_id": company_id,
+            "source": source,
+            "chunk": i
+        })
+
+    documents_collection.add(
+        documents=chunks,
+        ids=ids,
+        metadatas=metadatas
+    )
+
+
+def search_documents(
+    query: str,
+    company_id: str,
+    n_results: int = 5
+):
+    """
+    Search only inside documents
+    belonging to one company.
+    """
+
+    results = documents_collection.query(
+        query_texts=[query],
+        where={
+            "company_id": company_id
+        },
+        n_results=n_results
+    )
+
+    if not results or not results.get("documents"):
+        return [], []
+
+    documents = results["documents"][0]
+    metadatas = results["metadatas"][0]
+
+    sources = list(
+        {
+            metadata["source"]
+            for metadata in metadatas
+        }
+    )
+
+    return documents, sources
