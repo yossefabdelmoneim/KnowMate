@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserCreate(BaseModel):
@@ -69,3 +70,6 @@ class RoleUpdate(BaseModel):
                 "role": "manager"
             }
         }
+
+    # Optional for compatibility with both projects.
+    expires_in: int | None = None
