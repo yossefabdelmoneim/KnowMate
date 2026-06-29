@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
@@ -5,29 +7,61 @@ from passlib.context import CryptContext
 
 from app.Back_End.core.config import settings
 
-
-password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Use Argon2 instead of bcrypt
+pwd_context = CryptContext(
+    schemes=["argon2"],
+    deprecated="auto",
+)
 
 
 def hash_password(password: str) -> str:
-    return password_context.hash(password)
+    return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return password_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    now = datetime.now(timezone.utc)
+
+    payload = data.copy()
+    payload.update(
+        {
+            "iat": now,
+            "exp": now
+            + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+            "type": "access",
+        }
     )
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+    return jwt.encode(
+        payload,
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
 
 
 def decode_access_token(token: str) -> dict:
     try:
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    except JWTError as exc:
-        raise ValueError("Invalid token") from exc
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+
+        if payload.get("type") != "access":
+            raise ValueError("Invalid token type")
+
+        return payload
+
+    except Exception as exc:
+        raise ValueError("Invalid or expired token") from exc
+def generate_verification_token() -> tuple[str, str]:
+    token = secrets.token_urlsafe(48)
+    hashed = hashlib.sha256(token.encode()).hexdigest()
+    return token, hashed
+
+
+def hash_verification_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()

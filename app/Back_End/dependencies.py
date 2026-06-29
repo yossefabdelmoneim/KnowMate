@@ -39,7 +39,7 @@ def get_current_user(
         if user_id is None:
             raise credentials_error
         user_id = int(user_id)
-    except (TypeError, ValueError):
+    except Exception:
         raise credentials_error
 
     user = db.query(models.User).filter(models.User.id == user_id).first()
