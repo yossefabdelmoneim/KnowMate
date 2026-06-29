@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
@@ -55,3 +57,11 @@ def decode_access_token(token: str) -> dict:
 
     except Exception as exc:
         raise ValueError("Invalid or expired token") from exc
+def generate_verification_token() -> tuple[str, str]:
+    token = secrets.token_urlsafe(48)
+    hashed = hashlib.sha256(token.encode()).hexdigest()
+    return token, hashed
+
+
+def hash_verification_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
