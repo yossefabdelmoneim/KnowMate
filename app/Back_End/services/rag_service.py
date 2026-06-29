@@ -11,8 +11,8 @@ def format_docs(docs):
 
 
 class RAGService:
-    def __init__(self):
-        self.llm = get_llm()
+    def __init__(self, agent_type="default"):
+        self.llm = get_llm(model_name=agent_type)
 
     def generate_answer(self, question: str, company_id: str):
         docs = search_mmr(
