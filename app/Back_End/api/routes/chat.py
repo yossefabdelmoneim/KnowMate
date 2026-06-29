@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import List, Dict, Any
+from app.Back_End.db import models
+from app.Back_End.dependencies import get_current_user
 from app.Back_End.services.rag_service import RAGService
 from app.Back_End.dependencies import get_current_user, require_roles
 

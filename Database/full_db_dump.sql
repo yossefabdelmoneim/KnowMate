@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 4Ep1J3Z9yGCWdxMJpZPH2mDnQGJXclc34Ck2GVqBems7hPOMkWemLFoo9dEOaS2
+\restrict NmzDblEqtF3oCgj6nc6Hknjxe3yeAjcR9l09mZby2eiLNCrj3hqSCJ1Buq14on6
 
 -- Dumped from database version 18.0
 -- Dumped by pg_dump version 18.0
@@ -183,7 +183,8 @@ CREATE TABLE public.users (
     hashed_password character varying(255) NOT NULL,
     full_name character varying(255),
     company_id integer,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    role character varying(50) DEFAULT 'employee'::character varying NOT NULL
 );
 
 
@@ -282,7 +283,7 @@ COPY public.documents (id, user_id, company_id, filename, file_path, doc_id, chu
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: knowmate
 --
 
-COPY public.users (id, email, hashed_password, full_name, company_id, created_at) FROM stdin;
+COPY public.users (id, email, hashed_password, full_name, company_id, created_at, role) FROM stdin;
 \.
 
 
@@ -453,5 +454,5 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 4Ep1J3Z9yGCWdxMJpZPH2mDnQGJXclc34Ck2GVqBems7hPOMkWemLFoo9dEOaS2
+\unrestrict NmzDblEqtF3oCgj6nc6Hknjxe3yeAjcR9l09mZby2eiLNCrj3hqSCJ1Buq14on6
 

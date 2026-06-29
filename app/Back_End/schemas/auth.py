@@ -27,3 +27,8 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class RoleUpdate(BaseModel):
+    user_id: int
+    role: str
