@@ -1,6 +1,5 @@
 import re
 import shutil
-import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query, Depends
@@ -8,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.Back_End.db import models
 from app.Back_End.db.session import get_db
-from app.Back_End.dependencies import get_current_user
+from app.Back_End.dependencies import get_current_user, require_roles
 from app.Back_End.services.ingestion import delete_document, ingest, replace_document
 
 router = APIRouter()
@@ -33,7 +32,7 @@ def safe_upload_path(filename: str) -> Path:
     stem = Path(original_name).stem
     safe_stem = re.sub(r"[^A-Za-z0-9_.-]+", "_", stem).strip("._") or "upload"
 
-    return UPLOAD_DIR / f"{uuid.uuid4().hex}_{safe_stem}{suffix}"
+    return UPLOAD_DIR / f"{safe_stem}{suffix}"
 
 
 def save_upload(file: UploadFile) -> Path:
@@ -56,9 +55,9 @@ async def upload(
 
     try:
         result = ingest(str(file_path), company_id)
-    except ValueError as exc:
+    except Exception as exc:
         file_path.unlink(missing_ok=True)
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=f"Failed to process file: {exc}") from exc
 
     doc = models.Document(
         user_id=current_user.id,
@@ -74,54 +73,65 @@ async def upload(
     return result
 
 
-@router.delete("/{doc_id}")
+@router.delete("/", dependencies=[Depends(require_roles(["admin","manager"]))])
 def delete(
-    doc_id: str,
+    filename: str = Query(...),
     company_id: str = Query(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    deleted_chunks = delete_document(doc_id, company_id)
-
-    if deleted_chunks == 0:
+    doc = db.query(models.Document).filter(
+        models.Document.filename == filename,
+        models.Document.company_id == company_id
+    ).first()
+    if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    doc = db.query(models.Document).filter(models.Document.doc_id == doc_id).first()
-    if doc:
-        db.delete(doc)
-        db.commit()
+    deleted_chunks = delete_document(doc.doc_id, company_id)
+
+    Path(doc.file_path).unlink(missing_ok=True)
+    db.delete(doc)
+    db.commit()
 
     return {
-        "doc_id": doc_id,
+        "doc_id": doc.doc_id,
+        "filename": doc.filename,
         "deleted_chunks": deleted_chunks
     }
 
 
-@router.put("/{doc_id}")
+@router.put("/", dependencies=[Depends(require_roles(["admin","manager"]))])
 async def update(
-    doc_id: str,
+    filename: str = Query(...),
+    company_id: str = Query(...),
     file: UploadFile = File(...),
-    company_id: str = Form(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    doc = db.query(models.Document).filter(
+        models.Document.filename == filename,
+        models.Document.company_id == company_id
+    ).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
     file_path = save_upload(file)
 
     try:
-        result = replace_document(str(file_path), company_id, doc_id)
-    except ValueError as exc:
+        result = replace_document(str(file_path), company_id, doc.doc_id)
+    except Exception as exc:
         file_path.unlink(missing_ok=True)
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=f"Failed to process file: {exc}") from exc
 
     if result is None:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=404, detail="Document not found")
 
-    doc = db.query(models.Document).filter(models.Document.doc_id == doc_id).first()
-    if doc:
-        doc.filename = file.filename
-        doc.file_path = str(file_path)
-        doc.chunks = result["chunks"]
-        db.commit()
+    Path(doc.file_path).unlink(missing_ok=True)
+
+    doc.filename = file.filename
+    doc.file_path = str(file_path)
+    doc.chunks = result["chunks"]
+    db.commit()
 
     return result

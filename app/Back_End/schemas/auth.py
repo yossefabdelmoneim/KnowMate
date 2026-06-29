@@ -9,12 +9,14 @@ class UserCreate(BaseModel):
     password: str
     full_name: Optional[str] = None
     role: str = "employee"
+    company_id: Optional[int] = None
 
 
 class UserOut(BaseModel):
     id: int
     email: str
     full_name: Optional[str] = None
+    company_id: Optional[int] = None
     role: str
     created_at: datetime
 

@@ -8,10 +8,6 @@ from app.Back_End.db.session import engine, Base
 
 Base.metadata.create_all(bind=engine)
 
-
-
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
 
 app.include_router(documents.router, prefix="/documents")
