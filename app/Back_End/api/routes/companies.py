@@ -53,8 +53,7 @@ def list_companies(db: Session = Depends(get_db)):
     return db.query(models.Company).all()
 
 
-@router.get("/{company_id}", response_model=CompanyOut, dependencies=[Depends(require_roles(["admin","manager"]))])
-def get_company(company_id: int, db: Session = Depends(get_db)):
+
 @router.post("/register", response_model=RegistrationResponse, status_code=status.HTTP_201_CREATED)
 def register_company(
     data: CompanyRegistrationRequest,
