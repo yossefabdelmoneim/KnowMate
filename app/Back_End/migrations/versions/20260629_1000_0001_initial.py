@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # Use the portable JSON type that renders as JSONB on Postgres, JSON on
 # SQLite/other backends — keeps models + migrations consistent.
-from KnowMate.app.Back_End.db.data_analysis.types import JSONB
+from  app.Back_End.db.data_analysis.types import JSONB
 
 # revision identifiers, used by Alembic.
 revision = "0001_initial"

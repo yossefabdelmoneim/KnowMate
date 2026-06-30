@@ -29,9 +29,9 @@ from sqlalchemy import DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from KnowMate.app.Back_End.db.data_analysis.base import Base
-from KnowMate.app.Back_End.db.data_analysis.types import JSONB
-from KnowMate.app.Back_End.models.data_analysis._mixins import TimestampMixin, UUIDPkMixin
+from app.Back_End.db.data_analysis.base import Base
+from app.Back_End.db.data_analysis.types import JSONB
+from app.Back_End.models.data_analysis._mixins import TimestampMixin, UUIDPkMixin
 
 
 class UserPreference(Base, UUIDPkMixin, TimestampMixin):

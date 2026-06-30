@@ -12,7 +12,7 @@ from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from KnowMate.app.Back_End.schemas.data_analysis.common import ORMModel
+from app.Back_End.schemas.data_analysis.common import ORMModel
 
 
 # --- Dataset profile (sent to the LLM as context) ---------------------------
@@ -56,7 +56,7 @@ class DatasetProfile(BaseModel):
 class Intent(BaseModel):
     """String enum of supported intent types.
 
-    Mirrors models.py from the standalone KnowMate. Kept as a Pydantic
+    Mirrors models.py from the standalone   Kept as a Pydantic
     BaseModel with Literal typing so the OpenAPI docs render it cleanly.
     """
 

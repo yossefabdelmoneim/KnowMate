@@ -30,14 +30,14 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.core.config import settings
-from KnowMate.app.Back_End.core.data_analysis.exceptions import LLMError
-from KnowMate.app.Back_End.core.llm import get_llm_client
-from KnowMate.app.Back_End.models.data_analysis.long_term_memory import LongTermMemory, UserPreference
-from KnowMate.app.Back_End.repositories.data_analysis.memory_repository import (
+from app.Back_End.core.config import settings
+from app.Back_End.core.data_analysis.exceptions import LLMError
+from app.Back_End.core.llm import get_llm_client
+from app.Back_End.models.data_analysis.long_term_memory import LongTermMemory, UserPreference
+from app.Back_End.repositories.data_analysis.memory_repository import (
     LongTermMemoryRepository, UserPreferenceRepository,
 )
-from KnowMate.app.Back_End.repositories.data_analysis.message_repository import MessageRepository
+from app.Back_End.repositories.data_analysis.message_repository import MessageRepository
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class MemoryService:
             return 0
 
         # Lazy import to avoid circular at module load.
-        from KnowMate.app.Back_End.prompts.data_analysis.memory_extraction import build_preference_extraction_prompt
+        from app.Back_End.prompts.data_analysis.memory_extraction import build_preference_extraction_prompt
 
         prompt = build_preference_extraction_prompt(question, response_summary)
 
@@ -159,7 +159,7 @@ class MemoryService:
         if not settings.long_term_memory_enabled:
             return 0
 
-        from KnowMate.app.Back_End.prompts.data_analysis.memory_extraction import build_fact_extraction_prompt
+        from app.Back_End.prompts.data_analysis.memory_extraction import build_fact_extraction_prompt
 
         prompt = build_fact_extraction_prompt(question, response_summary)
 

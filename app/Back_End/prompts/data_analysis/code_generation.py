@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from prompts.data_analysis.system_prompts import SYSTEM_PROMPT
+from app.Back_End.prompts.data_analysis.system_prompts import SYSTEM_PROMPT
 
 if TYPE_CHECKING:
     from schemas.data_analysis.message import (

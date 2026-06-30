@@ -7,8 +7,8 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.models.data_analysis.user import User
-from KnowMate.app.Back_End.repositories.data_analysis.base import BaseRepository
+from app.Back_End.models.data_analysis.user import User
+from app.Back_End.repositories.data_analysis.base import BaseRepository
 
 
 class UserRepository(BaseRepository[User]):

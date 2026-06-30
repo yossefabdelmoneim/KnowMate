@@ -26,14 +26,14 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from core.data_analysis.exceptions import (
+from app.Back_End.core.data_analysis.exceptions import (
     AuthenticationError, InvalidApiKeyError, InvalidTokenError, NotFoundError,
 )
-from core.security import decode_access_token
-from db.session import get_db
-from models.data_analysis.user import User
-from services.data_analysis.api_key_service import ApiKeyService
-from services.data_analysis.auth_service import AuthService
+from app.Back_End.core.security import decode_access_token
+from app.Back_End.db.data_analysis.session import get_db
+from app.Back_End.models.data_analysis.user import User
+from app.Back_End.services.data_analysis.api_key_service import ApiKeyService
+from app.Back_End.services.data_analysis.auth_service import AuthService
 
 logger = logging.getLogger(__name__)
 

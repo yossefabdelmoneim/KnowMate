@@ -7,9 +7,9 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from KnowMate.app.Back_End.models.data_analysis.chat_session import ChatSession
-from KnowMate.app.Back_End.models.data_analysis.message import Message
-from KnowMate.app.Back_End.repositories.data_analysis.base import BaseRepository
+from app.Back_End.models.data_analysis.chat_session import ChatSession
+from app.Back_End.models.data_analysis.message import Message
+from app.Back_End.repositories.data_analysis.base import BaseRepository
 
 
 class SessionRepository(BaseRepository[ChatSession]):

@@ -1,10 +1,3 @@
-from fastapi import FastAPI
-from fastapi.openapi.utils import get_openapi
-from app.Back_End.api.routes import chat, search
-from app.Back_End.api.routes import documents
-from app.Back_End.api.routes import auth
-from app.Back_End.api.routes import companies
-from app.Back_End.db.session import engine, Base
 """
 Main FastAPI application.
 
@@ -28,13 +21,15 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 # -------------------------------
 # Core
 # -------------------------------
 
 from app.Back_End.core.config import settings
-from app.Back_End.core.logging import setup_logging
-from app.Back_End.core.exceptions import AppError
+from app.Back_End.core.data_analysis.logging import setup_logging
+from app.Back_End.core.data_analysis.exceptions import AppError
 
 # -------------------------------
 # Database
@@ -83,23 +78,8 @@ async def lifespan(app: FastAPI):
     """
     Startup / Shutdown.
     """
+    Base.metadata.create_all(bind=engine)
 
-
-Base.metadata.create_all(bind=engine)
-
-app = FastAPI(
-    title="KnowMate API",
-    description="Knowledge Management and AI Assistant API for enterprises",
-    version="1.0.0",
-    contact={
-        "name": "KnowMate Support",
-        "url": "https://knowmate.example.com",
-        "email": "support@knowmate.example.com",
-    },
-    license_info={
-        "name": "MIT",
-    },
-)
     settings.ensure_storage_dirs()
 
     logger.info(
@@ -159,11 +139,8 @@ async def app_error_handler(
 # ---------------------------------------------------------------------
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-
 app.include_router(documents.router, prefix="/documents")
 app.include_router(search.router, prefix="/search")
-app.include_router(auth.router, prefix="/auth")
-app.include_router(companies.router, prefix="/companies")
 app.include_router(chat.router, prefix="/api")
 
 # ---------------------------------------------------------------------

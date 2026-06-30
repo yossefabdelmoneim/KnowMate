@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import sys
 
-from KnowMate.app.Back_End.core.config import settings
+from app.Back_End.core.config import settings
 
 LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"

@@ -10,13 +10,13 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_user
-from db.session import get_db
-from models.data_analysis.user import User
-from repositories.data_analysis.memory_repository import (
+from app.Back_End.api.deps import get_current_user
+from app.Back_End.db.session import get_db
+from app.Back_End.models.data_analysis.user import User
+from app.Back_End.repositories.data_analysis.memory_repository import (
     LongTermMemoryRepository, UserPreferenceRepository,
 )
-from schemas.data_analysis.memory import (
+from app.Back_End.schemas.data_analysis.memory import (
     LongTermMemoryPublic, MemoryListResponse, UserPreferencePublic,
 )
 

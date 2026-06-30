@@ -7,8 +7,8 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.models.data_analysis.dataset import Dataset
-from KnowMate.app.Back_End.repositories.data_analysis.base import BaseRepository
+from app.Back_End.models.data_analysis.dataset import Dataset
+from app.Back_End.repositories.data_analysis.base import BaseRepository
 
 
 class DatasetRepository(BaseRepository[Dataset]):

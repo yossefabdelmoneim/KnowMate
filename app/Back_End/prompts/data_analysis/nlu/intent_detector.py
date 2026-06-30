@@ -24,7 +24,7 @@ from __future__ import annotations
 import logging
 import re
 
-from KnowMate.app.Back_End.core.data_analysis.text_utils import normalize_text
+from app.Back_End.core.data_analysis.text_utils import normalize_text
 
 logger = logging.getLogger(__name__)
 

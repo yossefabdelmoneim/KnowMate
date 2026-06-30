@@ -20,12 +20,12 @@ Schema details live in each model's docstring.
 
 from __future__ import annotations
 
-from models.data_analysis.api_key import ApiKey
-from models.data_analysis.chat_session import ChatSession
-from models.data_analysis.dataset import Dataset
-from models.data_analysis.long_term_memory import LongTermMemory, UserPreference
-from models.data_analysis.message import Message
-from models.data_analysis.user import User
+from app.Back_End.models.data_analysis.api_key import ApiKey
+from app.Back_End.models.data_analysis.chat_session import ChatSession
+from app.Back_End.models.data_analysis.dataset import Dataset
+from app.Back_End.models.data_analysis.long_term_memory import LongTermMemory, UserPreference
+from app.Back_End.models.data_analysis.message import Message
+from app.Back_End.models.data_analysis.user import User
 
 __all__ = [
     "User",

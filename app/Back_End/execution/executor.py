@@ -23,9 +23,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from KnowMate.app.Back_End.core.config import settings
-from KnowMate.app.Back_End.execution.validator import CodeValidationError, extract_code_block, validate_code
-from KnowMate.app.Back_End.schemas.data_analysis.message import AnalysisResult, ChartData
+from app.Back_End.core.config import settings
+from app.Back_End.execution.validator import CodeValidationError, extract_code_block, validate_code
+from app.Back_End.schemas.data_analysis.message import AnalysisResult, ChartData
 
 logger = logging.getLogger(__name__)
 

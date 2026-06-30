@@ -21,18 +21,18 @@ from pathlib import Path
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.core.config import settings
-from KnowMate.app.Back_End.core.data_analysis.exceptions import (
+from app.Back_End.core.config import settings
+from app.Back_End.core.data_analysis.exceptions import (
     ConflictError, DatasetAlreadyAttachedError, EmptyUploadError,
     FileTooLargeError, NotFoundError, UnsupportedFileTypeError, ValidationError,
 )
-from KnowMate.app.Back_End.models.data_analysis.dataset import Dataset as DatasetModel
-from KnowMate.app.Back_End.repositories.data_analysis.dataset_repository import DatasetRepository
-from KnowMate.app.Back_End.repositories.data_analysis.session_repository import SessionRepository
-from KnowMate.app.Back_End.schemas.data_analysis.dataset import DatasetPublic
-from KnowMate.app.Back_End.schemas.data_analysis.message import DatasetProfile
-from services.data_analysis.dataset_loader import is_extension_supported, load_dataset
-from services.data_analysis.dataset_profiler import build_dataset_profile
+from app.Back_End.models.data_analysis.dataset import Dataset as DatasetModel
+from app.Back_End.repositories.data_analysis.dataset_repository import DatasetRepository
+from app.Back_End.repositories.data_analysis.session_repository import SessionRepository
+from app.Back_End.schemas.data_analysis.dataset import DatasetPublic
+from app.Back_End.schemas.data_analysis.message import DatasetProfile
+from app.Back_End.services.data_analysis.dataset_loader import is_extension_supported, load_dataset
+from app.Back_End.services.data_analysis.dataset_profiler import build_dataset_profile
 
 logger = logging.getLogger(__name__)
 

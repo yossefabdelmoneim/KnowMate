@@ -18,26 +18,25 @@ from typing import Any
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.core.config import settings
-from KnowMate.app.Back_End.core.data_analysis.exceptions import DatasetNotAttachedError, LLMError, NotFoundError
-from KnowMate.app.Back_End.core.llm import get_llm_client
-from execution.executor import ExecutionOutcome, execute_code
-from KnowMate.app.Back_End.models.data_analysis.message import Message
-from KnowMate.app.Back_End.prompts.data_analysis.code_generation import build_code_generation_prompt
-from KnowMate.app.Back_End.prompts.data_analysis.code_retry import build_code_retry_prompt
-from KnowMate.app.Back_End.prompts.data_analysis.insight_generation import build_insight_generation_prompt
-from KnowMate.app.Back_End.prompts.data_analysis.nlu.column_resolver import resolve_columns
-from KnowMate.app.Back_End.prompts.data_analysis.nlu.entity_extractor import extract_entities
-from KnowMate.app.Back_End.prompts.data_analysis.nlu.intent_detector import detect_intents
-from KnowMate.app.Back_End.prompts.data_analysis.system_prompts import SYSTEM_PROMPT
-from KnowMate.app.Back_End.repositories.data_analysis.message_repository import MessageRepository
-from KnowMate.app.Back_End.schemas.data_analysis.message import (
+from app.Back_End.core.config import settings
+from app.Back_End.core.data_analysis.exceptions import DatasetNotAttachedError, LLMError, NotFoundError
+from app.Back_End.core.llm import get_llm_client
+from app.Back_End.execution.executor import ExecutionOutcome, execute_code
+from app.Back_End.models.data_analysis.message import Message
+from app.Back_End.prompts.data_analysis.code_generation import build_code_generation_prompt
+from app.Back_End.prompts.data_analysis.insight_generation import build_insight_generation_prompt
+from app.Back_End.prompts.data_analysis.nlu.column_resolver import resolve_columns
+from app.Back_End.prompts.data_analysis.nlu.entity_extractor import extract_entities
+from app.Back_End.prompts.data_analysis.nlu.intent_detector import detect_intents
+from app.Back_End.prompts.data_analysis.system_prompts import SYSTEM_PROMPT
+from app.Back_End.repositories.data_analysis.message_repository import MessageRepository
+from app.Back_End.schemas.data_analysis.message import (
     AnalysisResult, AnalyzeResponse, ChartData, ColumnResolution,
     DatasetProfile, ExtractedEntities, Intent, MessageCreateRequest,
 )
-from services.agent_service import AgentContext, AgentService
-from KnowMate.app.Back_End.services.data_analysis.dataset_service import DatasetService
-from KnowMate.app.Back_End.services.data_analysis.memory_service import MemoryService
+from app.Back_End.services.data_analysis.agent_service import AgentContext, AgentService
+from app.Back_End.services.data_analysis.dataset_service import DatasetService
+from app.Back_End.services.data_analysis.memory_service import MemoryService
 
 logger = logging.getLogger(__name__)
 
@@ -425,7 +424,7 @@ def _compute_table_statistics(table: list[dict[str, Any]]) -> str:
 
 
 def _register_default_agent() -> None:
-    from services.agent_service import register_agent
+    from app.Back_End.services.data_analysis.agent_service import register_agent
 
     class _AnalystAgentRegistration:
         name = AnalystAgent.name

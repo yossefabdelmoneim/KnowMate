@@ -12,7 +12,7 @@ import logging
 
 from rapidfuzz import fuzz, process
 
-from schemas.data_analysis.message import ColumnResolution, ExtractedEntities
+from app.Back_End.schemas.data_analysis.message import ColumnResolution, ExtractedEntities
 
 logger = logging.getLogger(__name__)
 

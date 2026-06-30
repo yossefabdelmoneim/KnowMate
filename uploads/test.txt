@@ -1,1 +1,1 @@
-This is a test document for KnowMate. It contains information about the company policies.
+This is a test document for   It contains information about the company policies.

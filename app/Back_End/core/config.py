@@ -26,11 +26,6 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
-    SECRET_KEY = os.getenv("SECRET_KEY", "change_this_secret_key")
-    ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
-    VERIFICATION_TOKEN_EXPIRE_MINUTES = int(os.getenv("VERIFICATION_TOKEN_EXPIRE_MINUTES", "30"))
-    BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
     # ==========================================================
     # Application
@@ -44,6 +39,11 @@ class Settings(BaseSettings):
 
     host: str = "0.0.0.0"
     port: int = 8000
+
+    base_url: str = Field(
+        default="http://localhost:8000",
+        alias="BASE_URL",
+    )
 
     cors_origins: list[str] = Field(default_factory=lambda: ["*"])
 
@@ -74,6 +74,11 @@ class Settings(BaseSettings):
     jwt_access_token_ttl_minutes: int = Field(
         default=60,
         alias="ACCESS_TOKEN_EXPIRE_MINUTES",
+    )
+
+    verification_token_expire_minutes: int = Field(
+        default=30,
+        alias="VERIFICATION_TOKEN_EXPIRE_MINUTES",
     )
 
     api_key_prefix: str = "sk-knowmate-"
@@ -153,33 +158,43 @@ class Settings(BaseSettings):
     # ==========================================================
 
     @property
-    def DATABASE_URL(self):
+    def DATABASE_URL(self) -> str:
         return self.database_url
 
     @property
-    def SECRET_KEY(self):
+    def SECRET_KEY(self) -> str:
         return self.jwt_secret.get_secret_value()
 
     @property
-    def ALGORITHM(self):
+    def ALGORITHM(self) -> str:
         return self.jwt_algorithm
 
     @property
-    def ACCESS_TOKEN_EXPIRE_MINUTES(self):
+    def ACCESS_TOKEN_EXPIRE_MINUTES(self) -> int:
         return self.jwt_access_token_ttl_minutes
 
     @property
-    def CHROMA_DIR(self):
+    def VERIFICATION_TOKEN_EXPIRE_MINUTES(self) -> int:
+        return self.verification_token_expire_minutes
+
+    @property
+    def BASE_URL(self) -> str:
+        return self.base_url
+
+    @property
+    def CHROMA_DIR(self) -> str:
         return self.chroma_dir
 
     @property
-    def EMBEDDING_MODEL(self):
+    def EMBEDDING_MODEL(self) -> str:
         return self.embedding_model
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    return Settings()
+    settings = Settings()
+    settings.ensure_storage_dirs()
+    return settings
 
 
 settings = get_settings()

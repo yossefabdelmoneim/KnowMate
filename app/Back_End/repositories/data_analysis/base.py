@@ -12,7 +12,7 @@ from typing import Generic, TypeVar
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.db.data_analysis.base import Base
+from app.Back_End.db.data_analysis.base import Base
 
 ModelT = TypeVar("ModelT", bound=Base)
 

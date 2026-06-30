@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import ast
 
-from KnowMate.app.Back_End.core.data_analysis.exceptions import CodeExecutionError
+from app.Back_End.core.data_analysis.exceptions import CodeExecutionError
 
 
 # Top-level modules generated code is allowed to `import`.

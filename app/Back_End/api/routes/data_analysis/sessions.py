@@ -19,23 +19,23 @@ import uuid
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_user
-from core.data_analysis.exceptions import EmptyUploadError, ValidationError
-from db.session import get_db
-from models.data_analysis.user import User
-from repositories.data_analysis.session_repository import SessionRepository
-from schemas.data_analysis.dataset import DatasetPublic, DatasetUploadResponse, SupportedFileTypesResponse
-from schemas.data_analysis.message import (
+from app.Back_End.api.deps import get_current_user
+from app.Back_End.core.data_analysis.exceptions import EmptyUploadError, ValidationError
+from app.Back_End.db.session import get_db
+from app.Back_End.models.data_analysis.user import User
+from app.Back_End.repositories.data_analysis.session_repository import SessionRepository
+from app.Back_End.schemas.data_analysis.dataset import DatasetPublic, DatasetUploadResponse, SupportedFileTypesResponse
+from app.Back_End.schemas.data_analysis.message import (
     AnalyzeResponse, MessageCreateRequest, MessageListResponse, MessagePublic,
     ReportCreateRequest, ReportResponse,
 )
-from schemas.data_analysis.session import SessionCreateRequest, SessionListResponse, SessionPublic, SessionUpdateRequest
-from services.data_analysis.analyst_agent import AnalystAgent
-from services.data_analysis.dataset_service import DatasetService
-from services.data_analysis.dataset_loader import get_supported_extensions
-from services.data_analysis.session_service import SessionService
-from services.data_analysis.report_service import ReportService
-from core.config import settings
+from app.Back_End.schemas.data_analysis.session import SessionCreateRequest, SessionListResponse, SessionPublic, SessionUpdateRequest
+from app.Back_End.services.data_analysis.analyst_agent import AnalystAgent
+from app.Back_End.services.data_analysis.dataset_service import DatasetService
+from app.Back_End.services.data_analysis.dataset_loader import get_supported_extensions
+from app.Back_End.services.data_analysis.session_service import SessionService
+from app.Back_End.services.data_analysis.report_service import ReportService
+from app.Back_End.core.config import settings
 
 logger = logging.getLogger(__name__)
 

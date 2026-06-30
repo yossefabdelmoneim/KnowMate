@@ -13,8 +13,8 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.models.data_analysis.long_term_memory import LongTermMemory, UserPreference
-from KnowMate.app.Back_End.repositories.data_analysis.base import BaseRepository
+from  app.Back_End.models.data_analysis.long_term_memory import LongTermMemory, UserPreference
+from  app.Back_End.repositories.data_analysis.base import BaseRepository
 
 
 class UserPreferenceRepository(BaseRepository[UserPreference]):

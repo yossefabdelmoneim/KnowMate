@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from KnowMate.app.Back_End.schemas.data_analysis.message import (
+from app.Back_End.schemas.data_analysis.message import (
     CategoricalColumnStats, ColumnProfile, DatasetProfile, NumericColumnStats,
 )
 

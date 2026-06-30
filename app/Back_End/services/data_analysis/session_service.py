@@ -14,10 +14,10 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.core.data_analysis.exceptions import ConflictError, NotFoundError, ValidationError
-from KnowMate.app.Back_End.models.data_analysis.chat_session import ChatSession
-from KnowMate.app.Back_End.repositories.data_analysis.session_repository import SessionRepository
-from KnowMate.app.Back_End.schemas.data_analysis.session import SessionCreateRequest, SessionPublic, SessionUpdateRequest
+from app.Back_End.core.data_analysis.exceptions import ConflictError, NotFoundError, ValidationError
+from app.Back_End.models.data_analysis.chat_session import ChatSession
+from app.Back_End.repositories.data_analysis.session_repository import SessionRepository
+from app.Back_End.schemas.data_analysis.session import SessionCreateRequest, SessionPublic, SessionUpdateRequest
 
 logger = logging.getLogger(__name__)
 

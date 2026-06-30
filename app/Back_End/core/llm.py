@@ -20,8 +20,8 @@ from typing import Protocol
 
 import requests
 
-from KnowMate.app.Back_End.core.config import settings
-from KnowMate.app.Back_End.core.data_analysis.exceptions import LLMError
+from app.Back_End.core.config import settings
+from app.Back_End.core.data_analysis.exceptions import LLMError
 
 logger = logging.getLogger(__name__)
 

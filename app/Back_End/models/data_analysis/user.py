@@ -15,8 +15,8 @@ import uuid
 from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from KnowMate.app.Back_End.db.data_analysis.base import Base
-from KnowMate.app.Back_End.models.data_analysis._mixins import TimestampMixin, UUIDPkMixin
+from app.Back_End.db.data_analysis.base import Base
+from app.Back_End.models.data_analysis._mixins import TimestampMixin, UUIDPkMixin
 
 
 class User(Base, UUIDPkMixin, TimestampMixin):

@@ -11,7 +11,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from schemas.data_analysis.common import ORMModel
+from app.Back_End.schemas.data_analysis.common import ORMModel
 
 
 class ApiKeyCreateRequest(BaseModel):

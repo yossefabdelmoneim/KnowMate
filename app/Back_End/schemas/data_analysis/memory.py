@@ -13,7 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from KnowMate.app.Back_End.schemas.data_analysis.common import ORMModel
+from  app.Back_End.schemas.data_analysis.common import ORMModel
 
 
 class UserPreferencePublic(ORMModel):

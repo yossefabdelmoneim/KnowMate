@@ -17,7 +17,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
-from KnowMate.app.Back_End.schemas.data_analysis.message import AnalyzeResponse, MessageCreateRequest
+from app.Back_End.schemas.data_analysis.message import AnalyzeResponse, MessageCreateRequest
 
 logger = logging.getLogger(__name__)
 

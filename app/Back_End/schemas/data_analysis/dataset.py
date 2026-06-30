@@ -7,7 +7,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from KnowMate.app.Back_End.schemas.data_analysis.common import ORMModel
+from app.Back_End.schemas.data_analysis.common import ORMModel
 
 
 class DatasetPublic(ORMModel):

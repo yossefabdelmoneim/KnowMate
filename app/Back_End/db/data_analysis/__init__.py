@@ -11,7 +11,7 @@ Two responsibilities:
 
 from __future__ import annotations
 
-from db.base import Base
-from db.session import SessionLocal, get_db, engine
+from app.Back_End.db.data_analysis.base import Base
+from app.Back_End.db.data_analysis.session import SessionLocal, get_db, engine
 
 __all__ = ["Base", "SessionLocal", "engine", "get_db"]

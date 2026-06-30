@@ -15,13 +15,13 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.core.config import settings
-from KnowMate.app.Back_End.core.data_analysis.exceptions import InvalidApiKeyError, NotFoundError
-from KnowMate.app.Back_End.core.security import constant_time_eq, generate_api_key, hash_api_key
-from KnowMate.app.Back_End.models.data_analysis.api_key import ApiKey
-from KnowMate.app.Back_End.models.data_analysis.user import User
-from KnowMate.app.Back_End.repositories.data_analysis.api_key_repository import ApiKeyRepository
-from KnowMate.app.Back_End.schemas.data_analysis.api_key import (
+from app.Back_End.core.config import settings
+from app.Back_End.core.data_analysis.exceptions import InvalidApiKeyError, NotFoundError
+from app.Back_End.core.security import constant_time_eq, generate_api_key, hash_api_key
+from app.Back_End.models.data_analysis.api_key import ApiKey
+from app.Back_End.models.data_analysis.user import User
+from app.Back_End.repositories.data_analysis.api_key_repository import ApiKeyRepository
+from app.Back_End.schemas.data_analysis.api_key import (
     ApiKeyCreateRequest, ApiKeyCreateResponse, ApiKeyListResponse, ApiKeyPublic,
 )
 

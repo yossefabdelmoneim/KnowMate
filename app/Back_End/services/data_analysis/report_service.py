@@ -33,23 +33,23 @@ from typing import Any
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from KnowMate.app.Back_End.core.config import settings
-from KnowMate.app.Back_End.core.data_analysis.exceptions import DatasetNotAttachedError, LLMError, NotFoundError
-from KnowMate.app.Back_End.core.llm import get_llm_client
-from KnowMate.app.Back_End.models.data_analysis.message import Message
-from KnowMate.app.Back_End.prompts.data_analysis.code_generation import _format_dataset_profile
-from KnowMate.app.Back_End.prompts.data_analysis.report_generation import (
+from app.Back_End.core.config import settings
+from app.Back_End.core.data_analysis.exceptions import DatasetNotAttachedError, LLMError, NotFoundError
+from app.Back_End.core.llm import get_llm_client
+from app.Back_End.models.data_analysis.message import Message
+from app.Back_End.prompts.data_analysis.code_generation import _format_dataset_profile
+from app.Back_End.prompts.data_analysis.report_generation import (
     build_outline_prompt, build_report_assembly_prompt,
     build_section_summary_prompt,
 )
-from KnowMate.app.Back_End.repositories.data_analysis.message_repository import MessageRepository
-from KnowMate.app.Back_End.schemas.data_analysis.message import (
+from app.Back_End.repositories.data_analysis.message_repository import MessageRepository
+from app.Back_End.schemas.data_analysis.message import (
     AnalysisResult, ChartData, DatasetProfile, ExtractedEntities, Intent,
     MessageCreateRequest, ReportCreateRequest, ReportResponse, ReportSection,
 )
-from services.data_analysis.analyst_agent import AnalystAgent
-from services.data_analysis.dataset_service import DatasetService
-from services.data_analysis.memory_service import MemoryService
+from app.Back_End.services.data_analysis.analyst_agent import AnalystAgent
+from app.Back_End.services.data_analysis.dataset_service import DatasetService
+from app.Back_End.services.data_analysis.memory_service import MemoryService
 
 logger = logging.getLogger(__name__)
 
@@ -236,15 +236,15 @@ class ReportService:
         section_title = plan.get("title", "Section")
         section_intent = plan.get("intent", "summary")
 
-        from KnowMate.app.Back_End.prompts.data_analysis.nlu.column_resolver import resolve_columns
-        from KnowMate.app.Back_End.prompts.data_analysis.nlu.entity_extractor import extract_entities
-        from KnowMate.app.Back_End.prompts.data_analysis.nlu.intent_detector import detect_intents
-        from KnowMate.app.Back_End.prompts.data_analysis.code_generation import build_code_generation_prompt
-        from KnowMate.app.Back_End.prompts.data_analysis.code_retry import build_code_retry_prompt
-        from KnowMate.app.Back_End.prompts.data_analysis.system_prompts import SYSTEM_PROMPT
-        from KnowMate.app.Back_End.prompts.data_analysis.insight_generation import build_insight_generation_prompt
+        from app.Back_End.prompts.data_analysis.nlu.column_resolver import resolve_columns
+        from app.Back_End.prompts.data_analysis.nlu.entity_extractor import extract_entities
+        from app.Back_End.prompts.data_analysis.nlu.intent_detector import detect_intents
+        from app.Back_End.prompts.data_analysis.code_generation import build_code_generation_prompt
+        from app.Back_End.prompts.data_analysis.code_retry import build_code_retry_prompt
+        from app.Back_End.prompts.data_analysis.system_prompts import SYSTEM_PROMPT
+        from app.Back_End.prompts.data_analysis.insight_generation import build_insight_generation_prompt
         from execution.executor import execute_code
-        from services.analyst_agent import _compute_table_statistics
+        from app.Back_End.services.data_analysis.analyst_agent import _compute_table_statistics
 
         intent_values = detect_intents(sub_question)
         intents = [Intent(value=v) for v in intent_values]

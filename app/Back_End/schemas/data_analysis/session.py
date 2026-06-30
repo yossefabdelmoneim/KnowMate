@@ -7,8 +7,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from KnowMate.app.Back_End.schemas.data_analysis.common import ORMModel
-from KnowMate.app.Back_End.schemas.data_analysis.dataset import DatasetPublic
+from app.Back_End.schemas.data_analysis.common import ORMModel
+from app.Back_End.schemas.data_analysis.dataset import DatasetPublic
 
 
 class SessionCreateRequest(BaseModel):

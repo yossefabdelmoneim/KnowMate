@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from core.config import settings
-from core.llm import get_llm_client
+from app.Back_End.core.config import settings
+from app.Back_End.core.llm import get_llm_client
 
 router = APIRouter(tags=["health"])
 
