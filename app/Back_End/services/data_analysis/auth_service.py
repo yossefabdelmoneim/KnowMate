@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import uuid # Import uuid
 
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -10,7 +11,8 @@ from sqlalchemy.orm import Session
 from app.Back_End.core.config import settings
 from app.Back_End.core.data_analysis.exceptions import InvalidCredentialsError, ValidationError
 from app.Back_End.core.security import create_access_token, hash_password, verify_password
-from app.Back_End.db.models import User
+# Removed: from app.Back_End.db.models import User # This was the legacy User model
+from app.Back_End.models.data_analysis.user import User as DataAnalysisUser # Import the correct User model
 from app.Back_End.repositories.data_analysis.user_repository import UserRepository
 from app.Back_End.schemas.auth import UserCreate as RegisterRequest, UserOut as UserPublic, Token as TokenResponse
 
@@ -34,10 +36,11 @@ class AuthService:
         if self.repo.get_by_email(request.email):
             raise ValidationError("An account with this email already exists.")
 
-        user = User(
+        user = DataAnalysisUser( # Use DataAnalysisUser
             email=request.email,
             hashed_password=hash_password(request.password),
             full_name=request.full_name,
+            role=(request.role or "employee"), # Ensure role is passed if present in request
         )
         self.repo.add(user)
         self.db.commit()
@@ -59,5 +62,5 @@ class AuthService:
             "user_id": user.id,
         }
 
-    def get_user(self, user_id: int) -> User | None:
+    def get_user(self, user_id: uuid.UUID) -> DataAnalysisUser | None: # Updated type hint to uuid.UUID
         return self.repo.get_by_id(user_id)

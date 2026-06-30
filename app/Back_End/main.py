@@ -39,6 +39,7 @@ from app.Back_End.core.data_analysis.exceptions import AppError
 # -------------------------------
 
 from app.Back_End.db.session import Base, engine
+from app.Back_End.db.data_analysis.base import Base as DataAnalysisBase # Import the separate Base
 
 # Register all SQLAlchemy models
 import app.Back_End.db.models  # noqa: F401
@@ -81,7 +82,8 @@ async def lifespan(app: FastAPI):
     """
     Startup / Shutdown.
     """
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine) # Create tables for legacy models
+    DataAnalysisBase.metadata.create_all(bind=engine) # Create tables for data analysis models
 
     settings.ensure_storage_dirs()
 

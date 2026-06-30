@@ -20,13 +20,15 @@ from app.Back_End.models.data_analysis._mixins import TimestampMixin, UUIDPkMixi
 
 
 class User(Base, UUIDPkMixin, TimestampMixin):
-    __tablename__ = "users"
+    __tablename__ = "data_analysis_users" # Renamed to avoid conflict
+    __table_args__ = {'extend_existing': True}
 
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    role: Mapped[str] = mapped_column(String(50), nullable=False, default="employee") # Added role column
 
     # --- Relationships (lazy by default; routes that need them should
     #     explicitly selectinload to avoid N+1 queries) ---

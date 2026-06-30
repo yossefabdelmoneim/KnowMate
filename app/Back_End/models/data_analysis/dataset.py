@@ -35,6 +35,7 @@ from app.Back_End.models.data_analysis._mixins import TimestampMixin, UUIDPkMixi
 class Dataset(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "datasets"
     __table_args__ = (
+        {'extend_existing': True}, # Add this line
         # Enforces "one file per chat" at the DB level too — even if
         # the service layer had a bug, the unique constraint would
         # reject a second insert.

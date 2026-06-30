@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+# Import the User model from data_analysis models
+from app.Back_End.models.data_analysis.user import User as DataAnalysisUser
 from app.Back_End.core.security import create_access_token, hash_password, verify_password
-from app.Back_End.db import models
 from app.Back_End.db.session import get_db
 from app.Back_End.dependencies import get_current_user
 from app.Back_End.schemas.auth import Token, UserCreate, UserOut, RoleUpdate
@@ -33,8 +34,8 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     - **company_id**: Associated company ID (optional)
     """
     existing_user = (
-        db.query(models.User)
-        .filter(models.User.email == user_data.email)
+        db.query(DataAnalysisUser) # Use DataAnalysisUser
+        .filter(DataAnalysisUser.email == user_data.email)
         .first()
     )
     if existing_user:
@@ -43,12 +44,12 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered",
         )
 
-    user = models.User(
+    user = DataAnalysisUser( # Use DataAnalysisUser
         email=user_data.email,
         hashed_password=hash_password(user_data.password),
         full_name=user_data.full_name,
         role=(user_data.role or "employee"),
-        company_id=user_data.company_id,
+        # company_id is not part of DataAnalysisUser, removed
     )
     db.add(user)
     db.commit()
@@ -79,8 +80,8 @@ def login(
     - **password**: User's password
     """
     user = (
-        db.query(models.User)
-        .filter(models.User.email == form_data.username)
+        db.query(DataAnalysisUser) # Use DataAnalysisUser
+        .filter(DataAnalysisUser.email == form_data.username)
         .first()
     )
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -104,7 +105,7 @@ def login(
         401: {"description": "Not authenticated"},
     }
 )
-def me(current_user: models.User = Depends(get_current_user)):
+def me(current_user: DataAnalysisUser = Depends(get_current_user)): # Use DataAnalysisUser
     """
     Get the profile of the currently logged-in user.
     
@@ -127,7 +128,7 @@ def me(current_user: models.User = Depends(get_current_user)):
 def update_role(
     data: RoleUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: DataAnalysisUser = Depends(get_current_user), # Use DataAnalysisUser
 ):
     """
     Update a user's role (admin only).
@@ -137,7 +138,7 @@ def update_role(
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Only admins can change roles")
 
-    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    user = db.query(DataAnalysisUser).filter(DataAnalysisUser.id == data.user_id).first() # Use DataAnalysisUser
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 

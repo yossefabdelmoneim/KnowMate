@@ -1,9 +1,12 @@
 """Data-analysis Base alias.
 
-Option A keeps a single SQLAlchemy Base across the whole project so the
-legacy and data-analysis tables are created together.
+Option B uses a separate SQLAlchemy Base for data-analysis models to
+avoid conflicts with the legacy models.
 """
 
-from app.Back_End.db.session import Base
+from sqlalchemy.orm import declarative_base
+
+# Define a separate Base for data-analysis models
+Base = declarative_base()
 
 __all__ = ["Base"]

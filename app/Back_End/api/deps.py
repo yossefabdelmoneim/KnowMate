@@ -19,6 +19,7 @@ through to the X-API-Key check.
 from __future__ import annotations
 
 import logging
+import uuid # Import uuid
 
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -29,7 +30,8 @@ from app.Back_End.core.data_analysis.exceptions import (
 )
 from app.Back_End.core.security import decode_access_token
 from app.Back_End.db.session import get_db
-from app.Back_End.db.models import User
+# Import the User model from data_analysis models
+from app.Back_End.models.data_analysis.user import User as DataAnalysisUser
 from app.Back_End.services.data_analysis.api_key_service import ApiKeyService
 from app.Back_End.services.data_analysis.auth_service import AuthService
 
@@ -48,7 +50,7 @@ def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
     db: Session = Depends(get_db),
-) -> User:
+) -> DataAnalysisUser: # Updated return type hint
     """Resolve the current user via EITHER JWT bearer OR X-API-Key.
 
     Decision order:
@@ -78,11 +80,11 @@ def get_current_user(
             raise InvalidTokenError("Token payload missing 'sub'.")
 
         try:
-            user_id = int(user_id_str)
+            user_id = uuid.UUID(user_id_str) # Parse as UUID
         except ValueError as exc:
-            raise InvalidTokenError("Token 'sub' is not a valid integer.") from exc
+            raise InvalidTokenError("Token 'sub' is not a valid UUID.") from exc
 
-        user = AuthService(db).get_user(user_id)
+        user = AuthService(db).get_user(user_id) # Use AuthService which should query DataAnalysisUser
         if user is None:
             raise NotFoundError("User not found.")
         return user
@@ -99,7 +101,7 @@ def get_current_user(
 def get_current_user_from_jwt(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
     db: Session = Depends(get_db),
-) -> User:
+) -> DataAnalysisUser: # Updated return type hint
     """Strict JWT-only auth — used by API key management routes."""
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise InvalidTokenError(
@@ -117,11 +119,11 @@ def get_current_user_from_jwt(
         raise InvalidTokenError("Token payload missing 'sub'.")
 
     try:
-        user_id = int(user_id_str)
+        user_id = uuid.UUID(user_id_str) # Parse as UUID
     except ValueError as exc:
-        raise InvalidTokenError("Token 'sub' is not a valid integer.") from exc
+        raise InvalidTokenError("Token 'sub' is not a valid UUID.") from exc
 
-    user = AuthService(db).get_user(user_id)
+    user = AuthService(db).get_user(user_id) # Use AuthService which should query DataAnalysisUser
     if user is None:
         raise NotFoundError("User not found.")
     return user
@@ -130,7 +132,7 @@ def get_current_user_from_jwt(
 def get_current_user_from_api_key(
     request: Request,
     db: Session = Depends(get_db),
-) -> User:
+) -> DataAnalysisUser: # Updated return type hint
     """Strict API-key-only auth."""
     api_key = request.headers.get("X-API-Key")
     if not api_key:
