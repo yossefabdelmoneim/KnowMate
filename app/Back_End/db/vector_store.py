@@ -1,12 +1,30 @@
 import chromadb
 import uuid
 
-client = chromadb.PersistentClient(path="./chroma_db")
+from langchain_huggingface import HuggingFaceEmbeddings  # Add this line
+from langchain_chroma import Chroma
+from app.Back_End.core.config import settings
 
+# Initialize ChromaDB client and collection
+client = chromadb.PersistentClient(path=settings.chroma_dir)
 documents_collection = client.get_or_create_collection(
     "hr_documents"
 )
 
+# Initialize embedding function
+_embedding_function = HuggingFaceEmbeddings(
+    model_name=settings.embedding_model
+)
+
+def get_vector_store() -> Chroma:
+    """
+    Returns a LangChain Chroma vector store instance.
+    """
+    return Chroma(
+        client=client,
+        collection_name="hr_documents",
+        embedding_function=_embedding_function,
+    )
 
 def delete_documents_by_source(
     source: str,

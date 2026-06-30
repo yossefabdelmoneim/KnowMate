@@ -126,7 +126,8 @@ async def upload(
 )
 def delete(
     doc_id: str,
-    company_id: str = Query(..., description="Company ID")
+    company_id: str = Query(..., description="Company ID"),
+    current_user = Depends(require_roles(["admin", "manager"]))
 ):
     """
     Delete a document and its chunks from the knowledge base (admin/manager only).
@@ -156,7 +157,7 @@ async def update(
     doc_id: str,
     file: UploadFile = File(..., description="New document file"),
     company_id: str = Form(..., description="Company ID"),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_roles(["admin", "manager"]))
 ):
     """
     Replace an existing document with a new one (admin/manager only).

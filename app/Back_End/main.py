@@ -17,6 +17,9 @@ Features:
 
 from __future__ import annotations
 
+import dotenv
+dotenv.load_dotenv() # Load environment variables from .env file
+
 import logging
 from contextlib import asynccontextmanager
 
@@ -171,28 +174,6 @@ def root():
         "health": "/health",
     }
 
-@app.get(
-    "/health",
-    tags=["Health"],
-    summary="Health check",
-    responses={
-        200: {
-            "description": "API is healthy",
-            "content": {
-                "application/json": {
-                    "example": {"status": "ok"}
-                }
-            }
-        }
-    }
-)
-def health():
-    """
-    Health check endpoint to verify API is running.
-
-    Returns a simple status response if the API is operational.
-    """
-    return {"status": "ok"}
 # ---------------------------------------------------------------------
 
 if __name__ == "__main__":

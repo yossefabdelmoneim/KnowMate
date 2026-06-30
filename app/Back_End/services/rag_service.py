@@ -1,4 +1,4 @@
-from app.Back_End.core.llm import get_llm
+from app.Back_End.core.llm import get_llm_client
 from app.Back_End.prompts.customer_agent import RAG_PROMPT
 from app.Back_End.services.retrieval import search_mmr
 
@@ -12,7 +12,8 @@ def format_docs(docs):
 
 class RAGService:
     def __init__(self, agent_type="default"):
-        self.llm = get_llm(model_name=agent_type)
+        # get_llm_client returns an LLMClient instance, which handles model selection internally
+        self.llm_client = get_llm_client()
 
     def generate_answer(self, question: str, company_id: str):
         docs = search_mmr(
@@ -36,8 +37,8 @@ class RAGService:
             question=question
         )
 
-        response = self.llm.invoke(prompt)
-        answer = response.content if hasattr(response, "content") else response
+        # Use the chat method of the LLMClient
+        answer = self.llm_client.chat(user_prompt=prompt)
 
         return {
             "answer": answer,
