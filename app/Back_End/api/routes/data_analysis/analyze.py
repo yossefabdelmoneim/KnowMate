@@ -25,8 +25,8 @@ from sqlalchemy.orm import Session
 from app.Back_End.api.deps import get_current_user
 from app.Back_End.core.config import settings
 from app.Back_End.core.data_analysis.exceptions import ValidationError
-from app.Back_End.db.data_analysis.session import get_db
-from app.Back_End.models.data_analysis.user import User
+from app.Back_End.db.session import get_db
+from app.Back_End.db.models import User
 from app.Back_End.schemas.data_analysis.message import AnalyzeResponse, MessageCreateRequest
 from app.Back_End.schemas.data_analysis.session import SessionCreateRequest
 from app.Back_End.services.data_analysis.analyst_agent import AnalystAgent

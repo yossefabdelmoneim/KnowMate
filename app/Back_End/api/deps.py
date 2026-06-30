@@ -19,9 +19,7 @@ through to the X-API-Key check.
 from __future__ import annotations
 
 import logging
-import uuid
 
-import jwt
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -30,8 +28,8 @@ from app.Back_End.core.data_analysis.exceptions import (
     AuthenticationError, InvalidApiKeyError, InvalidTokenError, NotFoundError,
 )
 from app.Back_End.core.security import decode_access_token
-from app.Back_End.db.data_analysis.session import get_db
-from app.Back_End.models.data_analysis.user import User
+from app.Back_End.db.session import get_db
+from app.Back_End.db.models import User
 from app.Back_End.services.data_analysis.api_key_service import ApiKeyService
 from app.Back_End.services.data_analysis.auth_service import AuthService
 
@@ -72,9 +70,7 @@ def get_current_user(
         token = credentials.credentials
         try:
             payload = decode_access_token(token)
-        except jwt.ExpiredSignatureError as exc:
-            raise InvalidTokenError("Token has expired.") from exc
-        except jwt.InvalidTokenError as exc:
+        except ValueError as exc:
             raise InvalidTokenError(f"Invalid token: {exc}") from exc
 
         user_id_str = payload.get("sub")
@@ -82,15 +78,13 @@ def get_current_user(
             raise InvalidTokenError("Token payload missing 'sub'.")
 
         try:
-            user_id = uuid.UUID(user_id_str)
+            user_id = int(user_id_str)
         except ValueError as exc:
-            raise InvalidTokenError("Token 'sub' is not a valid UUID.") from exc
+            raise InvalidTokenError("Token 'sub' is not a valid integer.") from exc
 
         user = AuthService(db).get_user(user_id)
         if user is None:
             raise NotFoundError("User not found.")
-        if not user.is_active:
-            raise AuthenticationError("Account is disabled.")
         return user
 
     # 3. No credentials provided
@@ -115,9 +109,7 @@ def get_current_user_from_jwt(
     token = credentials.credentials
     try:
         payload = decode_access_token(token)
-    except jwt.ExpiredSignatureError as exc:
-        raise InvalidTokenError("Token has expired.") from exc
-    except jwt.InvalidTokenError as exc:
+    except ValueError as exc:
         raise InvalidTokenError(f"Invalid token: {exc}") from exc
 
     user_id_str = payload.get("sub")
@@ -125,15 +117,13 @@ def get_current_user_from_jwt(
         raise InvalidTokenError("Token payload missing 'sub'.")
 
     try:
-        user_id = uuid.UUID(user_id_str)
+        user_id = int(user_id_str)
     except ValueError as exc:
-        raise InvalidTokenError("Token 'sub' is not a valid UUID.") from exc
+        raise InvalidTokenError("Token 'sub' is not a valid integer.") from exc
 
     user = AuthService(db).get_user(user_id)
     if user is None:
         raise NotFoundError("User not found.")
-    if not user.is_active:
-        raise AuthenticationError("Account is disabled.")
     return user
 
 
