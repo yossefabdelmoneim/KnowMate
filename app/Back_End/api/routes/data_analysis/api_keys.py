@@ -9,18 +9,16 @@ keys for themselves).
 
 from __future__ import annotations
 
-import uuid
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_user
-from db.session import get_db
-from models.data_analysis.user import User
-from schemas.data_analysis.api_key import (
+from app.Back_End.api.deps import get_current_user
+from app.Back_End.db.session import get_db
+from app.Back_End.db.models import User
+from app.Back_End.schemas.data_analysis.api_key import (
     ApiKeyCreateRequest, ApiKeyCreateResponse, ApiKeyListResponse, ApiKeyPublic,
 )
-from services.data_analysis.api_key_service import ApiKeyService
+from app.Back_End.services.data_analysis.api_key_service import ApiKeyService
 
 router = APIRouter(prefix="/api-keys", tags=["api-keys"])
 
@@ -45,7 +43,7 @@ def list_api_keys(
 
 @router.delete("/{api_key_id}", response_model=ApiKeyPublic)
 def revoke_api_key(
-    api_key_id: uuid.UUID,
+    api_key_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ApiKeyPublic:
