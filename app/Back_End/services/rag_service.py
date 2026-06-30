@@ -12,8 +12,10 @@ def format_docs(docs):
 
 class RAGService:
     def __init__(self, agent_type="default"):
-        # get_llm_client returns an LLMClient instance, which handles model selection internally
         self.llm_client = get_llm_client()
+        # Store the agent_type to be used as the model name
+        # If agent_type is "default", we let the llm_client use its own default (from settings)
+        self.model_name = agent_type if agent_type != "default" else None
 
     def generate_answer(self, question: str, company_id: str):
         docs = search_mmr(
@@ -37,8 +39,8 @@ class RAGService:
             question=question
         )
 
-        # Use the chat method of the LLMClient
-        answer = self.llm_client.chat(user_prompt=prompt)
+        # Pass the model_name to the chat method
+        answer = self.llm_client.chat(user_prompt=prompt, model=self.model_name)
 
         return {
             "answer": answer,
