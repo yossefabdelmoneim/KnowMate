@@ -52,6 +52,7 @@ import app.Back_End.models.data_analysis  # noqa: F401
 from app.Back_End.api.routes import (
     auth,
     chat,
+    companies,
     documents,
     search,
 )
@@ -144,6 +145,7 @@ async def app_error_handler(
 # ---------------------------------------------------------------------
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(companies.router, prefix="/companies")
 app.include_router(documents.router, prefix="/documents")
 app.include_router(search.router, prefix="/search")
 app.include_router(chat.router, prefix="/api")
