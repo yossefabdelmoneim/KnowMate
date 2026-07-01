@@ -1,78 +1,6 @@
 # Back_End — KnowMate Data Analyst Agent
 
-Layered FastAPI backend that hosts the KnowMate Data Analyst Agent and
-exposes both a JWT-based web surface and (eventually) an API-key
-surface for programmatic clients.
-
-## Layered layout
-
-```
-Back_End/
-├── api/
-│   ├── deps.py              # Auth (JWT + API key) + DB session deps
-│   └── routes/
-│       ├── health.py        # GET /health
-│       ├── auth.py          # POST /auth/register, /auth/login
-│       ├── sessions.py      # CRUD + dataset attach + messages
-│       ├── analyze.py       # POST /analyze (backwards-compat)
-│       ├── api_keys.py      # API key management (DEFERRED)
-│       └── memory.py        # Long-term memory read (stub)
-├── core/                    # Cross-cutting infra
-│   ├── config.py            # Settings (env-driven)
-│   ├── security.py          # JWT, API key gen/hash, password hashing
-│   ├── llm_client.py        # Ollama adapter (LLMClient protocol)
-│   ├── logging.py
-│   ├── exceptions.py        # Domain exception hierarchy
-│   └── text_utils.py        # normalize_text + dedup helpers
-├── db/
-│   ├── base.py              # Declarative Base + naming convention
-│   └── session.py           # Engine + SessionLocal + get_db dep
-├── models/                  # SQLAlchemy ORM (one file per entity)
-│   ├── user.py
-│   ├── chat_session.py
-│   ├── message.py
-│   ├── dataset.py
-│   ├── api_key.py
-│   └── long_term_memory.py  # UserPreference + LongTermMemory stub
-├── prompts/
-│   ├── system_prompts.py
-│   ├── code_generation.py
-│   ├── insight_generation.py
-│   └── nlu/                 # Deterministic NLU pipeline (no LLM calls)
-│       ├── intent_detector.py
-│       ├── entity_extractor.py
-│       └── column_resolver.py
-├── repositories/            # Data-access layer (one repo per entity)
-├── schemas/                 # Pydantic v2 request/response schemas
-├── services/                # Business logic
-│   ├── agent_service.py     # AgentService protocol (multi-agent stub)
-│   ├── analyst_agent.py     # The Data Analyst Agent (port of agent.py)
-│   ├── auth_service.py
-│   ├── api_key_service.py   # DEFERRED but functional
-│   ├── session_service.py   # Enforces one-file-per-chat
-│   ├── dataset_service.py   # Upload + cache + load
-│   ├── dataset_loader.py    # Multi-format: CSV, TSV, XLSX, XLS, ODS, JSON, JSONL, Parquet, Stata
-│   ├── dataset_profiler.py  # Builds DatasetProfile from DataFrame
-│   └── memory_service.py    # Short-term memory + long-term stub
-├── execution/               # Restricted Executor (AST + namespace)
-│   ├── validator.py
-│   └── executor.py
-├── migrations/              # Alembic
-├── data/datasets/           # On-disk uploaded files (gitignored)
-├── main.py                  # FastAPI entry
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-├── .env.example
-└── README.md (this file)
-```
-
-## Quick start (docker compose)
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
+Layered FastAPI backend that hosts the KnowMate Data Analyst Agent
 
 This brings up Postgres + Ollama + the API on port 8000. Open
 http://localhost:8000/docs for the OpenAPI spec.
@@ -177,14 +105,6 @@ registered implementation. When you add more agents (SQL agent, viz
 agent, etc.), register them the same way and build an orchestrator
 that picks among them.
 
-### API key auth
-Per-user API keys (SHA-256 hashed, plaintext shown once at creation).
-Two auth paths converge on a `current_user` dependency:
-- JWT bearer (web UI)
-- `X-API-Key` header (programmatic clients)
-
-The API key management routes are scaffolded but commented out in
-`main.py` — uncomment to enable.
 
 ### Supported file formats
 CSV, TSV, plain text, XLSX, XLS (legacy), ODS, JSON, JSON Lines,
