@@ -1,7 +1,7 @@
 
-  # Design KnowMate UI/UX
+  # Complete the task
 
-  This is a code bundle for Design KnowMate UI/UX. The original project is available at https://www.figma.com/design/yY06VIUsYAKQAQuQTyWYMb/Design-KnowMate-UI-UX.
+  This is a code bundle for Complete the task. The original project is available at https://www.figma.com/design/XV2NA3JalL7thj2pISfU7x/Complete-the-task.
 
   ## Running the code
 
