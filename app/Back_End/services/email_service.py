@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def send_verification_email(to_email: str, company_name: str, verification_link: str) -> None:
     if not settings.smtp_username or not settings.smtp_from_email:
-        logger.warning("SMTP not configured — verification email not sent to %s", to_email)
+        logger.warning("SMTP not configured — verification link for %s: %s", to_email, verification_link)
         return
 
     subject = f"Verify your company '{company_name}' on KnowMate"
@@ -46,7 +46,7 @@ KnowMate Team
 
 def send_password_reset_email(to_email: str, reset_link: str) -> None:
     if not settings.smtp_username or not settings.smtp_from_email:
-        logger.warning("SMTP not configured — password reset email not sent to %s", to_email)
+        logger.warning("SMTP not configured — password reset link for %s: %s", to_email, reset_link)
         return
 
     subject = "Reset your KnowMate password"
