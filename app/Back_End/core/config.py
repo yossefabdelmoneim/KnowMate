@@ -117,7 +117,7 @@ class Settings(BaseSettings):
     llm_ollama_tags_endpoint: str = "/api/tags"
 
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
-    groq_model: str = "llama3-70b-8192"
+    groq_model: str = "llama-3.3-70b-versatile"
     groq_base_url: str = "https://api.groq.com/openai/v1"
 
     llm_model: str = "qwen2.5:7b"
