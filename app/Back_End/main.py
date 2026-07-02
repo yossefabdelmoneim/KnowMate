@@ -83,8 +83,11 @@ async def lifespan(app: FastAPI):
     """
     Startup / Shutdown.
     """
-    Base.metadata.create_all(bind=engine) # Create tables for legacy models
-    DataAnalysisBase.metadata.create_all(bind=engine) # Create tables for data analysis models
+    try:
+        Base.metadata.create_all(bind=engine)
+        DataAnalysisBase.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.warning("Could not create DB tables: %s", e)
 
     settings.ensure_storage_dirs()
 
