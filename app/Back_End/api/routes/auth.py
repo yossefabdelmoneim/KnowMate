@@ -213,3 +213,102 @@ def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Password reset successfully."}
+
+
+# ---------------------------------------------------------------------
+# Admin endpoints for user management
+# ---------------------------------------------------------------------
+
+from pydantic import BaseModel
+
+
+class UserAdminOut(BaseModel):
+    id: str
+    email: str
+    full_name: str | None = None
+    role: str
+    is_active: bool
+    session_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class SessionAdminOut(BaseModel):
+    id: str
+    title: str
+    created_at: str | None = None
+    message_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+@router.get(
+    "/admin/users",
+    response_model=list[UserAdminOut],
+    summary="List all users (admin only)",
+)
+def admin_list_users(
+    db: Session = Depends(get_db),
+    current_user: DataAnalysisUser = Depends(get_current_user),
+):
+    if current_user.role not in ("admin", "COMPANY_ADMIN"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    users = db.query(DataAnalysisUser).all()
+    result = []
+    for u in users:
+        result.append(UserAdminOut(
+            id=str(u.id),
+            email=u.email,
+            full_name=u.full_name,
+            role=u.role,
+            is_active=u.is_active,
+            session_count=len(u.sessions),
+        ))
+    return result
+
+
+@router.delete(
+    "/admin/users/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a user and all their data (admin only)",
+)
+def admin_delete_user(
+    user_id: str,
+    db: Session = Depends(get_db),
+    current_user: DataAnalysisUser = Depends(get_current_user),
+):
+    if current_user.role not in ("admin", "COMPANY_ADMIN"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    user = db.query(DataAnalysisUser).filter(DataAnalysisUser.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.delete(user)
+    db.commit()
+
+
+@router.get(
+    "/admin/users/{user_id}/sessions",
+    response_model=list[SessionAdminOut],
+    summary="View a user's chat sessions (admin only)",
+)
+def admin_user_sessions(
+    user_id: str,
+    db: Session = Depends(get_db),
+    current_user: DataAnalysisUser = Depends(get_current_user),
+):
+    if current_user.role not in ("admin", "COMPANY_ADMIN"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    user = db.query(DataAnalysisUser).filter(DataAnalysisUser.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    result = []
+    for s in user.sessions:
+        result.append(SessionAdminOut(
+            id=str(s.id),
+            title=s.title,
+            created_at=str(s.created_at) if s.created_at else None,
+            message_count=len(s.messages),
+        ))
+    return result
