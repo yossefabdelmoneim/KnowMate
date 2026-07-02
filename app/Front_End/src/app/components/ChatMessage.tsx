@@ -42,7 +42,7 @@ export function ChatMessage({ msg, onFeedback }: { msg: Message; onFeedback: (id
   if (msg.role === "user") {
     return (
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end mb-6">
-        <div className="max-w-[75%]">
+        <div className="max-w-full sm:max-w-[75%]">
           {msg.files && msg.files.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2 justify-end">
               {msg.files.map((f, i) => (
@@ -62,7 +62,7 @@ export function ChatMessage({ msg, onFeedback }: { msg: Message; onFeedback: (id
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.15 } }} className="flex justify-start mb-6">
-      <div className="max-w-[85%]">
+      <div className="max-w-full sm:max-w-[85%]">
         <div className="flex items-start gap-3">
           <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1">
             <Sparkles size={13} className="text-white" />

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { ChevronLeft, User, Bell, BarChart2, Shield, Key, Lock, Check } from "lucide-react";
+import { ChevronLeft, ChevronDown, User, Bell, BarChart2, Shield, Key, Lock, Check } from "lucide-react";
 import type { User as UserType } from "../services/auth";
 
 export function SettingsPage({ user, onBack }: { user: UserType | null; onBack: () => void }) {
   const [activeTab, setActiveTab] = useState("account");
   const [notifications, setNotifications] = useState({ email: true, push: false, weekly: true });
   const [twofa, setTwofa] = useState(false);
+  const [tabOpen, setTabOpen] = useState(false);
 
   const tabs = [
     { id: "account", label: "Account", icon: <User size={15} /> },
@@ -18,7 +19,7 @@ export function SettingsPage({ user, onBack }: { user: UserType | null; onBack: 
 
   return (
     <div className="h-full flex flex-col bg-background">
-      <div className="border-b border-border px-8 py-5 flex items-center gap-4">
+      <div className="border-b border-border px-4 sm:px-8 py-5 flex items-center gap-4">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft size={16} />
           Back
@@ -26,7 +27,25 @@ export function SettingsPage({ user, onBack }: { user: UserType | null; onBack: 
         <h1 className="text-lg font-semibold text-foreground">Settings</h1>
       </div>
       <div className="flex flex-1 overflow-hidden">
-        <nav className="w-52 border-r border-border p-4 flex-shrink-0 overflow-y-auto">
+        {/* Mobile tab selector */}
+        <div className="md:hidden relative border-b border-border px-4 py-3 flex-shrink-0">
+          <button onClick={() => setTabOpen(!tabOpen)} className="w-full flex items-center justify-between gap-2 px-3 py-2.5 bg-card border border-border rounded-xl text-sm font-medium text-foreground">
+            <span className="flex items-center gap-2">{tabs.find(t => t.id === activeTab)?.icon} {tabs.find(t => t.id === activeTab)?.label}</span>
+            <ChevronDown size={14} className={`transition-transform ${tabOpen ? "rotate-180" : ""}`} />
+          </button>
+          {tabOpen && (
+            <div className="absolute top-full left-4 right-4 z-10 mt-1 bg-popover border border-border rounded-xl shadow-xl overflow-hidden">
+              {tabs.map((t) => (
+                <button key={t.id} onClick={() => { setActiveTab(t.id); setTabOpen(false); }} className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors ${activeTab === t.id ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted"}`}>
+                  <span className="text-muted-foreground">{t.icon}</span>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <nav className="hidden md:block w-52 border-r border-border p-4 flex-shrink-0 overflow-y-auto">
           {tabs.map((t) => (
             <button
               key={t.id}

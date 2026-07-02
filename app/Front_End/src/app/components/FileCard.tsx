@@ -25,7 +25,7 @@ export function FileCard({ file, onRemove }: { file: UploadedFile; onRemove: (id
       initial={{ opacity: 0, scale: 0.95, y: 6 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="flex items-center gap-3 bg-card border border-border rounded-xl p-3 min-w-[200px] max-w-[260px] group shadow-sm"
+      className="flex items-center gap-3 bg-card border border-border rounded-xl p-3 min-w-0 sm:min-w-[200px] sm:max-w-[260px] group shadow-sm w-full sm:w-auto"
     >
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold ${fileColorMap[file.icon]}`}>
         {fileTypeIcon(file.icon)}

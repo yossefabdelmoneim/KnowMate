@@ -5,7 +5,7 @@ import {
   File, X, Check, Sparkles, BookOpen, Table, Zap,
   MessageSquare, Settings, LogOut, User, HelpCircle,
   ChevronDown, Loader2, AlertCircle, BrainCircuit,
-  Users, Megaphone, Trash2
+  Users, Megaphone, Trash2, Menu
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import HomePage from "./components/HomePage";
@@ -16,6 +16,8 @@ import { ChatMessage } from "./components/ChatMessage";
 import { FileCard } from "./components/FileCard";
 import { TypingIndicator } from "./components/TypingIndicator";
 import { ConversationGroup } from "./components/ConversationGroup";
+import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet";
+import { useIsMobile } from "./components/ui/use-mobile";
 import { useAuth } from "./contexts/AuthContext";
 import { api } from "./services/api";
 import type { Mode, UploadedFile, Message, Conversation } from "./types";
@@ -99,6 +101,8 @@ export default function App() {
   const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
   const [modelOpen, setModelOpen] = useState(false);
   const modelRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (dark) document.documentElement.classList.add("dark");
@@ -468,128 +472,178 @@ export default function App() {
       </AnimatePresence>
 
       {/* ── Sidebar ── */}
-      <motion.aside
-        animate={{ width: sidebarOpen ? 260 : 0 }}
-        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-        className="flex-shrink-0 h-full overflow-hidden bg-sidebar border-r border-sidebar-border flex flex-col"
-      >
-        <div className="flex-1 flex flex-col overflow-hidden" style={{ width: 260 }}>
-          <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                <Sparkles size={14} className="text-white" />
-              </div>
-              <span className="text-base font-bold text-sidebar-foreground" style={{ fontFamily: "'Instrument Sans', sans-serif" }}>KnowMate</span>
-            </div>
-            <button onClick={() => setSidebarOpen(false)} className="p-1.5 rounded-lg hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-foreground transition-colors">
-              <ChevronLeft size={15} />
-            </button>
-          </div>
-
-          <div className="p-3">
-            <button
-              onClick={startNewChat}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              <Plus size={15} />
-              New Conversation
-            </button>
-          </div>
-
-          <div className="px-3 pb-3">
-            <div className="flex items-center gap-2 px-3 py-2 bg-sidebar-accent rounded-xl">
-              <Search size={13} className="text-muted-foreground flex-shrink-0" />
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search conversations..."
-                className="flex-1 bg-transparent text-sm text-sidebar-foreground placeholder:text-muted-foreground focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-2 py-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
-            {sessionsLoading && (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 size={16} className="animate-spin text-muted-foreground" />
-              </div>
-            )}
-            {sessionsError && !sessionsLoading && (
-              <div className="mx-2 mb-3 p-3 bg-destructive/10 border border-destructive/30 rounded-xl">
-                <p className="text-xs text-destructive">{sessionsError}</p>
-                <button onClick={loadSessions} className="text-xs text-primary hover:underline mt-1">Retry</button>
-              </div>
-            )}
-            {!sessionsLoading && !sessionsError && sessions.length === 0 && (
-              <div className="text-center py-8 px-4">
-                <p className="text-xs text-muted-foreground">No conversations yet</p>
-              </div>
-            )}
-            <ConversationGroup label="Today" items={groupedConvs.today} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
-            <ConversationGroup label="Yesterday" items={groupedConvs.yesterday} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
-            <ConversationGroup label="Last 7 Days" items={groupedConvs.last7} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
-            <ConversationGroup label="Older" items={groupedConvs.older} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
-          </div>
-
-          <div className="border-t border-sidebar-border p-3 relative">
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-sidebar-accent transition-colors group"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-semibold flex-shrink-0">
-                {user?.full_name ? user.full_name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : user?.email?.[0]?.toUpperCase() ?? "U"}
-              </div>
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.full_name ?? user?.email ?? "User"}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email ?? ""}</p>
-              </div>
-              <ChevronDown size={13} className={`text-muted-foreground transition-transform ${showUserMenu ? "rotate-180" : ""}`} />
-            </button>
-            <AnimatePresence>
-              {showUserMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 4, scale: 0.97 }}
-                  className="absolute bottom-full left-3 right-3 mb-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-10"
-                >
-                  {[
-                    { icon: <User size={13} />, label: "Profile", action: () => { setMode("profile"); setShowUserMenu(false); } },
-                    { icon: <Settings size={13} />, label: "Settings", action: () => { setMode("settings"); setShowUserMenu(false); } },
-                    { icon: <HelpCircle size={13} />, label: "Help Center", action: () => setShowUserMenu(false) },
-                  ].map((item) => (
-                    <button key={item.label} onClick={item.action} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                      <span className="text-muted-foreground">{item.icon}</span>
-                      {item.label}
-                    </button>
-                  ))}
-                  <div className="border-t border-border">
-                    <button
-                      onClick={() => { authLogout(); setShowUserMenu(false); }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/8 transition-colors"
-                    >
-                      <LogOut size={13} />
-                      Sign Out
-                    </button>
+      {isMobile ? (
+        <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+          <SheetContent side="left" className="w-[280px] p-0 bg-sidebar">
+            <div className="h-full flex flex-col overflow-hidden p-0">
+              <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+                    <Sparkles size={14} className="text-white" />
                   </div>
-                </motion.div>
+                  <span className="text-base font-bold text-sidebar-foreground" style={{ fontFamily: "'Instrument Sans', sans-serif" }}>KnowMate</span>
+                </div>
+              </div>
+              <div className="p-3">
+                <button onClick={() => { startNewChat(); setMobileSidebarOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
+                  <Plus size={15} />
+                  New Conversation
+                </button>
+              </div>
+              <div className="px-3 pb-3">
+                <div className="flex items-center gap-2 px-3 py-2 bg-sidebar-accent rounded-xl">
+                  <Search size={13} className="text-muted-foreground flex-shrink-0" />
+                  <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search conversations..." className="flex-1 bg-transparent text-sm text-sidebar-foreground placeholder:text-muted-foreground focus:outline-none" />
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-2 py-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+                {sessionsLoading && <div className="flex items-center justify-center py-6"><Loader2 size={16} className="animate-spin text-muted-foreground" /></div>}
+                {sessionsError && !sessionsLoading && (
+                  <div className="mx-2 mb-3 p-3 bg-destructive/10 border border-destructive/30 rounded-xl">
+                    <p className="text-xs text-destructive">{sessionsError}</p>
+                    <button onClick={loadSessions} className="text-xs text-primary hover:underline mt-1">Retry</button>
+                  </div>
+                )}
+                {!sessionsLoading && !sessionsError && sessions.length === 0 && <div className="text-center py-8 px-4"><p className="text-xs text-muted-foreground">No conversations yet</p></div>}
+                <ConversationGroup label="Today" items={groupedConvs.today} activeId={activeConvId} onSelect={(id) => { selectConversation(id); setMobileSidebarOpen(false); }} onDelete={deleteConversation} />
+                <ConversationGroup label="Yesterday" items={groupedConvs.yesterday} activeId={activeConvId} onSelect={(id) => { selectConversation(id); setMobileSidebarOpen(false); }} onDelete={deleteConversation} />
+                <ConversationGroup label="Last 7 Days" items={groupedConvs.last7} activeId={activeConvId} onSelect={(id) => { selectConversation(id); setMobileSidebarOpen(false); }} onDelete={deleteConversation} />
+                <ConversationGroup label="Older" items={groupedConvs.older} activeId={activeConvId} onSelect={(id) => { selectConversation(id); setMobileSidebarOpen(false); }} onDelete={deleteConversation} />
+              </div>
+              <div className="border-t border-sidebar-border p-3 relative">
+                <button onClick={() => setShowUserMenu(!showUserMenu)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-sidebar-accent transition-colors group">
+                  <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-semibold flex-shrink-0">
+                    {user?.full_name ? user.full_name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : user?.email?.[0]?.toUpperCase() ?? "U"}
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.full_name ?? user?.email ?? "User"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email ?? ""}</p>
+                  </div>
+                  <ChevronDown size={13} className={`text-muted-foreground transition-transform ${showUserMenu ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {showUserMenu && (
+                    <motion.div initial={{ opacity: 0, y: 4, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4, scale: 0.97 }} className="absolute bottom-full left-3 right-3 mb-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-10">
+                      {[
+                        { icon: <User size={13} />, label: "Profile", action: () => { setMode("profile"); setShowUserMenu(false); } },
+                        { icon: <Settings size={13} />, label: "Settings", action: () => { setMode("settings"); setShowUserMenu(false); } },
+                        { icon: <HelpCircle size={13} />, label: "Help Center", action: () => setShowUserMenu(false) },
+                      ].map((item) => (
+                        <button key={item.label} onClick={item.action} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                          <span className="text-muted-foreground">{item.icon}</span>
+                          {item.label}
+                        </button>
+                      ))}
+                      <div className="border-t border-border">
+                        <button onClick={() => { authLogout(); setShowUserMenu(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/8 transition-colors">
+                          <LogOut size={13} />
+                          Sign Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <motion.aside
+          animate={{ width: sidebarOpen ? 260 : 0 }}
+          transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+          className="flex-shrink-0 h-full overflow-hidden bg-sidebar border-r border-sidebar-border flex flex-col"
+        >
+          <div className="flex-1 flex flex-col overflow-hidden" style={{ width: 260 }}>
+            <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={14} className="text-white" />
+                </div>
+                <span className="text-base font-bold text-sidebar-foreground" style={{ fontFamily: "'Instrument Sans', sans-serif" }}>KnowMate</span>
+              </div>
+              <button onClick={() => setSidebarOpen(false)} className="p-1.5 rounded-lg hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-foreground transition-colors">
+                <ChevronLeft size={15} />
+              </button>
+            </div>
+            <div className="p-3">
+              <button onClick={startNewChat} className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
+                <Plus size={15} />
+                New Conversation
+              </button>
+            </div>
+            <div className="px-3 pb-3">
+              <div className="flex items-center gap-2 px-3 py-2 bg-sidebar-accent rounded-xl">
+                <Search size={13} className="text-muted-foreground flex-shrink-0" />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search conversations..." className="flex-1 bg-transparent text-sm text-sidebar-foreground placeholder:text-muted-foreground focus:outline-none" />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-2 py-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+              {sessionsLoading && <div className="flex items-center justify-center py-6"><Loader2 size={16} className="animate-spin text-muted-foreground" /></div>}
+              {sessionsError && !sessionsLoading && (
+                <div className="mx-2 mb-3 p-3 bg-destructive/10 border border-destructive/30 rounded-xl">
+                  <p className="text-xs text-destructive">{sessionsError}</p>
+                  <button onClick={loadSessions} className="text-xs text-primary hover:underline mt-1">Retry</button>
+                </div>
               )}
-            </AnimatePresence>
+              {!sessionsLoading && !sessionsError && sessions.length === 0 && <div className="text-center py-8 px-4"><p className="text-xs text-muted-foreground">No conversations yet</p></div>}
+              <ConversationGroup label="Today" items={groupedConvs.today} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
+              <ConversationGroup label="Yesterday" items={groupedConvs.yesterday} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
+              <ConversationGroup label="Last 7 Days" items={groupedConvs.last7} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
+              <ConversationGroup label="Older" items={groupedConvs.older} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
+            </div>
+            <div className="border-t border-sidebar-border p-3 relative">
+              <button onClick={() => setShowUserMenu(!showUserMenu)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-sidebar-accent transition-colors group">
+                <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-primary text-sm font-semibold flex-shrink-0">
+                  {user?.full_name ? user.full_name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : user?.email?.[0]?.toUpperCase() ?? "U"}
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.full_name ?? user?.email ?? "User"}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email ?? ""}</p>
+                </div>
+                <ChevronDown size={13} className={`text-muted-foreground transition-transform ${showUserMenu ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {showUserMenu && (
+                  <motion.div initial={{ opacity: 0, y: 4, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4, scale: 0.97 }} className="absolute bottom-full left-3 right-3 mb-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-10">
+                    {[
+                      { icon: <User size={13} />, label: "Profile", action: () => { setMode("profile"); setShowUserMenu(false); } },
+                      { icon: <Settings size={13} />, label: "Settings", action: () => { setMode("settings"); setShowUserMenu(false); } },
+                      { icon: <HelpCircle size={13} />, label: "Help Center", action: () => setShowUserMenu(false) },
+                    ].map((item) => (
+                      <button key={item.label} onClick={item.action} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                        <span className="text-muted-foreground">{item.icon}</span>
+                        {item.label}
+                      </button>
+                    ))}
+                    <div className="border-t border-border">
+                      <button onClick={() => { authLogout(); setShowUserMenu(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/8 transition-colors">
+                        <LogOut size={13} />
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
-        </div>
-      </motion.aside>
+        </motion.aside>
+      )}
 
       {/* ── Main Workspace ── */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Topbar */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-background/80 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center justify-between px-3 sm:px-5 py-3 border-b border-border bg-background/80 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-3">
-            {!sidebarOpen && (
+            {isMobile ? (
+              <button onClick={() => setMobileSidebarOpen(true)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                <Menu size={16} />
+              </button>
+            ) : !sidebarOpen && (
               <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronRight size={16} />
               </button>
             )}
-            {!sidebarOpen && (
+            {(!sidebarOpen || isMobile) && (
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center">
                   <Sparkles size={12} className="text-white" />
@@ -624,7 +678,7 @@ export default function App() {
           {mode === "welcome" ? (
             /* ── Welcome ── */
             <div className="flex-1 overflow-y-auto">
-              <div className="max-w-2xl mx-auto px-6 py-14">
+              <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                   <div className="flex justify-center mb-6">
                     <div className="w-14 h-14 rounded-2xl bg-primary/12 flex items-center justify-center">
@@ -637,7 +691,7 @@ export default function App() {
                   <p className="text-center text-muted-foreground mb-10">What would you like to analyze today?</p>
 
                   {/* Suggested prompts */}
-                  <div className="grid grid-cols-2 gap-3 mb-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
                     {SUGGESTED_PROMPTS.map((p) => (
                       <button
                         key={p.label}
@@ -685,7 +739,7 @@ export default function App() {
                   )}
 
                   {/* Quick stats */}
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
                       { label: "Conversations", value: String(sessions.length), sub: "total" },
                       { label: "Files uploaded", value: String(files.length), sub: "this session" },
@@ -704,7 +758,7 @@ export default function App() {
           ) : (
             /* ── Chat ── */
             <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
-              <div className="max-w-3xl mx-auto px-6 py-6 pb-2">
+              <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-2">
                 {/* Document cards */}
                 {files.length > 0 && (
                   <div className="mb-6">
@@ -749,7 +803,7 @@ export default function App() {
           )}
 
           {/* ── Input Area ── */}
-          <div className="flex-shrink-0 px-4 pb-5 pt-3 bg-gradient-to-t from-background via-background to-transparent">
+          <div className="flex-shrink-0 px-3 sm:px-4 pb-4 sm:pb-5 pt-3 bg-gradient-to-t from-background via-background to-transparent">
             <div className="max-w-3xl mx-auto">
               <div className={`border rounded-2xl shadow-lg bg-card transition-all duration-200 ${dragging ? "border-primary/60 shadow-primary/20" : "border-border"}`}>
                 <div className="px-4 pt-3.5 pb-2">
@@ -812,7 +866,7 @@ export default function App() {
                             initial={{ opacity: 0, y: 4, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                            className="absolute bottom-full left-0 mb-2 w-52 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-10"
+                            className="absolute bottom-full left-0 mb-2 w-52 max-[400px]:w-48 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-10"
                           >
                             {MODELS.map(m => {
                               const Icon = m.icon;
