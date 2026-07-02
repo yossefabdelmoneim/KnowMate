@@ -165,23 +165,58 @@ def register_company(
         minutes=settings.VERIFICATION_TOKEN_EXPIRE_MINUTES
     )
 
-    pending = models.PendingCompanyRegistration(
-        company_name=company_name,
-        admin_first_name=admin.first_name.strip(),
-        admin_last_name=admin.last_name.strip(),
-        admin_email=email,
-        hashed_password=hashed_pw,
-        verification_token_hash=hashed_token,
-        expires_at=expires_at,
+    if settings.smtp_username and settings.smtp_from_email:
+        pending = models.PendingCompanyRegistration(
+            company_name=company_name,
+            admin_first_name=admin.first_name.strip(),
+            admin_last_name=admin.last_name.strip(),
+            admin_email=email,
+            hashed_password=hashed_pw,
+            verification_token_hash=hashed_token,
+            expires_at=expires_at,
+        )
+        db.add(pending)
+        db.commit()
+
+        verification_link = f"{settings.BASE_URL}/companies/verify?token={plain_token}"
+        send_verification_email(email, company_name, verification_link)
+
+        return RegistrationResponse(
+            message="Registration initiated. Please check your email to verify.",
+            email=email,
+        )
+
+    # SMTP not configured — auto-verify immediately
+    company = models.Company(
+        name=company_name,
+        description=f"Company registered by {admin.first_name.strip()} {admin.last_name.strip()}",
     )
-    db.add(pending)
+    db.add(company)
+    db.flush()
+
+    user = models.User(
+        email=email,
+        hashed_password=hashed_pw,
+        full_name=f"{admin.first_name.strip()} {admin.last_name.strip()}",
+        role="COMPANY_ADMIN",
+        company_id=company.id,
+    )
+    db.add(user)
+    db.flush()
+
+    da_user = DataAnalysisUser(
+        email=email,
+        hashed_password=hashed_pw,
+        full_name=f"{admin.first_name.strip()} {admin.last_name.strip()}",
+        role="admin",
+    )
+    db.add(da_user)
+    db.flush()
     db.commit()
 
-    verification_link = f"{settings.BASE_URL}/companies/verify?token={plain_token}"
-    send_verification_email(email, company_name, verification_link)
-
+    logger.info("Auto-verified registration for %s", email)
     return RegistrationResponse(
-        message="Registration initiated. Please check your email to verify.",
+        message="Registration successful. You can now log in.",
         email=email,
     )
 
