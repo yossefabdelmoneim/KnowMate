@@ -164,7 +164,7 @@ def list_messages(
     # Verify ownership first.
     SessionService(db).get_for_user(user_id=user.id, session_id=session_id)
 
-    from repositories.message_repository import MessageRepository
+    from app.Back_End.repositories.data_analysis.message_repository import MessageRepository
     repo = MessageRepository(db)
     items, total = repo.list_for_session(session_id, offset=offset, limit=limit)
     return MessageListResponse(

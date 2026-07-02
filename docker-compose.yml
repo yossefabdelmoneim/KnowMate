@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: knowmate
+      POSTGRES_PASSWORD: knowmate_password
+      POSTGRES_DB: knowmate
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knowmate"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    entrypoint: sh
+    volumes:
+      - ollama_data:/root/.ollama
+    command: >
+      -c "
+        echo 'Starting Ollama server...'
+        ollama serve &
+        sleep 3
+        echo 'Pulling model qwen2.5:7b...'
+        ollama pull qwen2.5:7b
+        echo 'Ollama ready.'
+        wait
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list > /dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    environment:
+      DATABASE_URL: "postgresql://knowmate:knowmate_password@postgres:5432/knowmate"
+      SECRET_KEY: "Moaz12398"
+      LLM_OLLAMA_BASE_URL: "http://ollama:11434"
+      LLM_MODEL: "qwen2.5:7b"
+      SMTP_HOST: "smtp.gmail.com"
+      SMTP_PORT: "587"
+      SMTP_USERNAME: "moazabuelabass@gmail.com"
+      SMTP_PASSWORD: "nqnl miqg omcv gqen"
+      SMTP_FROM_EMAIL: "moazabuelabass@gmail.com"
+      SMTP_USE_TLS: "true"
+      ENV: "prod"
+      LOG_LEVEL: "INFO"
+    volumes:
+      - chroma_data:/app/chroma_db
+      - backend_data:/app/app/Back_End/data
+      - huggingface_cache:/root/.cache/huggingface
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.frontend
+      args:
+        VITE_API_URL: ""
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  ollama_data:
+  chroma_data:
+  backend_data:
+  huggingface_cache:

@@ -16,12 +16,12 @@ from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = BACKEND_ROOT.parent
+PROJECT_ROOT = BACKEND_ROOT.parent.parent  # KnowMate/ project root
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=str(BACKEND_ROOT / ".env"),
+        env_file=str(PROJECT_ROOT / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -110,11 +110,15 @@ class Settings(BaseSettings):
     # LLM
     # ==========================================================
 
-    llm_provider: Literal["ollama"] = "ollama"
+    llm_provider: Literal["ollama", "groq"] = "ollama"
 
     llm_ollama_base_url: str = "http://localhost:11434"
     llm_ollama_chat_endpoint: str = "/api/chat"
     llm_ollama_tags_endpoint: str = "/api/tags"
+
+    groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
+    groq_model: str = "llama3-70b-8192"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
 
     llm_model: str = "qwen2.5:7b"
 
@@ -135,6 +139,17 @@ class Settings(BaseSettings):
     memory_inject_top_preferences: int = 5
     memory_inject_top_memories: int = 3
     memory_min_confidence_to_inject: float = 0.5
+
+    # ==========================================================
+    # Email (SMTP)
+    # ==========================================================
+
+    smtp_host: str = Field(default="smtp.gmail.com", alias="SMTP_HOST")
+    smtp_port: int = Field(default=587, alias="SMTP_PORT")
+    smtp_username: str = Field(default="", alias="SMTP_USERNAME")
+    smtp_password: SecretStr = Field(default=SecretStr(""), alias="SMTP_PASSWORD")
+    smtp_from_email: str = Field(default="", alias="SMTP_FROM_EMAIL")
+    smtp_use_tls: bool = Field(default=True, alias="SMTP_USE_TLS")
 
     # ==========================================================
     # Dataset Parsing

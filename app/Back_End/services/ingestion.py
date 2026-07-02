@@ -1,7 +1,54 @@
+import os
 import uuid
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader, UnstructuredExcelLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
+from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from app.Back_End.db.vector_store import get_vector_store
+
+
+def load_excel(path: str) -> list[Document]:
+    if path.lower().endswith(".xls"):
+        import xlrd
+        wb = xlrd.open_workbook(path)
+        docs = []
+        for sheet in wb.sheets():
+            rows = []
+            for row_idx in range(sheet.nrows):
+                cells = [str(c) for c in sheet.row_values(row_idx) if c]
+                if cells:
+                    rows.append(" | ".join(cells))
+            if rows:
+                text = "\n".join(rows)
+                docs.append(Document(page_content=text, metadata={"source": os.path.basename(path)}))
+        return docs
+    from openpyxl import load_workbook
+    wb = load_workbook(path)
+    docs = []
+    for sheet in wb.worksheets:
+        rows = []
+        for row in sheet.iter_rows(values_only=True):
+            cells = [str(c) for c in row if c is not None]
+            if cells:
+                rows.append(" | ".join(cells))
+        if rows:
+            text = "\n".join(rows)
+            docs.append(Document(page_content=text, metadata={"source": os.path.basename(path)}))
+    wb.close()
+    return docs
+
+
+def load_csv(path: str) -> list[Document]:
+    import csv
+    with open(path, newline="", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        rows = []
+        for row in reader:
+            if row:
+                rows.append(" | ".join(row))
+    if not rows:
+        return []
+    text = "\n".join(rows)
+    return [Document(page_content=text, metadata={"source": os.path.basename(path)})]
 
 
 def load_document(path: str):
@@ -13,7 +60,9 @@ def load_document(path: str):
     elif suffix.endswith(".docx"):
         return Docx2txtLoader(path).load()
     elif suffix.endswith(".xlsx") or suffix.endswith(".xls"):
-        return UnstructuredExcelLoader(path, mode="elements").load()
+        return load_excel(path)
+    elif suffix.endswith(".csv"):
+        return load_csv(path)
     elif suffix.endswith(".txt"):
         return TextLoader(path).load()
 
@@ -28,27 +77,28 @@ def split_docs(docs):
     return splitter.split_documents(docs)
 
 
-def add_metadata(chunks, company_id, doc_id=None):
+def add_metadata(chunks, company_id, doc_id=None, source=None):
     doc_id = doc_id or str(uuid.uuid4()) # Generate a unique document ID
 
     for i, c in enumerate(chunks):
         c.metadata.update({
             "doc_id": doc_id, #All chunks from the same document get the same ID
             "chunk_id": i,
-            "company_id": company_id
+            "company_id": company_id,
+            "source": source or "",
         })
 
     return chunks
 
 
-def build_chunks(path: str, company_id: str, doc_id: str | None = None):
+def build_chunks(path: str, company_id: str, doc_id: str | None = None, source: str | None = None):
     docs = load_document(path)
     chunks = split_docs(docs)
 
     if not chunks:
         raise ValueError("Document did not contain any readable text.")
 
-    return add_metadata(chunks, company_id, doc_id)
+    return add_metadata(chunks, company_id, doc_id, source)
 
 
 def add_chunks(chunks):
@@ -61,8 +111,8 @@ def add_chunks(chunks):
     }
 
 
-def ingest(path: str, company_id: str, doc_id: str | None = None):
-    chunks = build_chunks(path, company_id, doc_id)
+def ingest(path: str, company_id: str, doc_id: str | None = None, source: str | None = None):
+    chunks = build_chunks(path, company_id, doc_id, source)
     return add_chunks(chunks)
 
 
@@ -98,13 +148,13 @@ def delete_document(doc_id: str, company_id: str | None = None):
     return delete_chunk_ids(ids)
 
 
-def replace_document(path: str, company_id: str, doc_id: str):
+def replace_document(path: str, company_id: str, doc_id: str, source: str | None = None):
     old_ids = get_document_chunk_ids(doc_id, company_id)
 
     if not old_ids:
         return None
 
-    chunks = build_chunks(path, company_id, doc_id)
+    chunks = build_chunks(path, company_id, doc_id, source)
     result = add_chunks(chunks)
     result["replaced_chunks"] = delete_chunk_ids(old_ids)
 

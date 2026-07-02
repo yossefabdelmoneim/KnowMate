@@ -31,7 +31,8 @@ export async function login(email: string, password: string): Promise<User> {
   formData.append("username", email);
   formData.append("password", password);
 
-  const res = await fetch("http://localhost:8000/auth/login", {
+  const apiBase = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+  const res = await fetch(`${apiBase}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: formData,
@@ -93,4 +94,12 @@ export function logout() {
 
 export function getStoredUser(): User | null {
   return api.getCachedUser() as User | null;
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  return api.post<{ message: string }>("/auth/forgot-password", { email }, false);
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+  return api.post<{ message: string }>("/auth/reset-password", { token, password }, false);
 }

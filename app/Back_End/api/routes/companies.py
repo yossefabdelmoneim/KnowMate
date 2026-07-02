@@ -14,6 +14,7 @@ from app.Back_End.core.security import (
 from app.Back_End.db import models
 from app.Back_End.db.session import get_db
 from app.Back_End.dependencies import get_current_user, require_roles
+from app.Back_End.models.data_analysis.user import User as DataAnalysisUser
 from app.Back_End.schemas.company import (
     CompanyRegistrationRequest,
     RegistrationResponse,
@@ -241,6 +242,15 @@ def verify_company(
             company_id=company.id,
         )
         db.add(user)
+        db.flush()
+
+        da_user = DataAnalysisUser(
+            email=pending.admin_email,
+            hashed_password=pending.hashed_password,
+            full_name=f"{pending.admin_first_name} {pending.admin_last_name}",
+            role="admin",
+        )
+        db.add(da_user)
         db.flush()
 
         pending.verified = True

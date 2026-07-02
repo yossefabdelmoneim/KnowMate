@@ -21,21 +21,24 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.Back_End.db.data_analysis.base import Base
+from app.Back_End.db.data_analysis.types import JSONB
 from app.Back_End.models.data_analysis._mixins import TimestampMixin, UUIDPkMixin
 
 
 class ChatSession(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "chat_sessions"
+    __table_args__ = {'extend_existing': True}
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("data_analysis_users.id", ondelete="CASCADE"), # Updated ForeignKey
         nullable=False,
         index=True,
     )
 
     title: Mapped[str] = mapped_column(String(255), default="New chat", nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    file_names: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
 
     # Soft-close flag — closed sessions stay queryable for history but
     # reject new messages.

@@ -4,7 +4,8 @@ import {
   Mic, Sun, Moon, FileText, FileSpreadsheet, FileImage,
   File, X, Check, Sparkles, BookOpen, Table, Zap,
   MessageSquare, Settings, LogOut, User, HelpCircle,
-  ChevronDown, Loader2, AlertCircle
+  ChevronDown, Loader2, AlertCircle, BrainCircuit,
+  Users, Megaphone, Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import HomePage from "./components/HomePage";
@@ -18,6 +19,14 @@ import { ConversationGroup } from "./components/ConversationGroup";
 import { useAuth } from "./contexts/AuthContext";
 import { api } from "./services/api";
 import type { Mode, UploadedFile, Message, Conversation } from "./types";
+
+// ── Models ──────────────────────────────────────────────────────────────────
+
+const MODELS = [
+  { id: "general", label: "Data Analysis", desc: "Document Q&A and data insights", icon: BrainCircuit, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30", glow: "shadow-emerald-500/20" },
+  { id: "hr", label: "HR", desc: "HR policies & employee inquiries", icon: Users, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/30", glow: "shadow-blue-500/20" },
+  { id: "marketing", label: "Marketing", desc: "Campaigns & brand copywriting", icon: Megaphone, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30", glow: "shadow-purple-500/20" },
+];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -56,7 +65,8 @@ export default function App() {
   const [dark, setDark] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<Mode>(user ? "welcome" : "home");
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authMode, setAuthMode] = useState<"login" | "register" | "forgot-password">("login");
+  const [resetToken, setResetToken] = useState<string | undefined>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [input, setInput] = useState("");
@@ -67,6 +77,9 @@ export default function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const lastFinalIndexRef = useRef(-1);
 
   // ── Sessions (conversations) state ──
   const [sessions, setSessions] = useState<Conversation[]>([]);
@@ -82,6 +95,11 @@ export default function App() {
   // ── Chat error state ──
   const [chatError, setChatError] = useState("");
 
+  // ── Selected model ──
+  const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
+  const [modelOpen, setModelOpen] = useState(false);
+  const modelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (dark) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -92,10 +110,30 @@ export default function App() {
   }, [messages, isTyping]);
 
   useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const rt = params.get("reset_token");
+    if (rt) {
+      setResetToken(rt);
+      setMode("reset-password");
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
     if (!loading) {
-      if (!user && mode !== "login" && mode !== "register" && mode !== "home") {
+      if (mode === "reset-password") return;
+      if (!user && mode !== "login" && mode !== "register" && mode !== "forgot-password" && mode !== "home") {
         setMode("home");
-      } else if (user && (mode === "login" || mode === "register" || mode === "home")) {
+      } else if (user && (mode === "login" || mode === "register" || mode === "home" || mode === "forgot-password")) {
         setMode("welcome");
       }
     }
@@ -106,11 +144,11 @@ export default function App() {
     setSessionsLoading(true);
     setSessionsError("");
     try {
-      const data = await api.get<{ id: string; title: string; updated_at: string; messages?: unknown[] }[]>("/sessions");
-      const mapped: Conversation[] = (data || []).map((s: { id: string; title: string; updated_at: string; messages?: unknown[] }) => ({
+      const data = await api.get<{ items: { id: string; title: string; updated_at: string; message_count?: number }[] }>("/sessions");
+      const mapped: Conversation[] = (data?.items || []).map((s: { id: string; title: string; updated_at: string; message_count?: number }) => ({
         id: s.id,
         title: s.title || "Untitled",
-        preview: `${Array.isArray(s.messages) ? s.messages.length : 0} messages`,
+        preview: `${s.message_count ?? 0} messages`,
         date: new Date(s.updated_at || Date.now()),
       }));
       setSessions(mapped);
@@ -167,7 +205,8 @@ export default function App() {
       return { ...entry, status: "ready", progress: 100, type: result.doc_id };
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : "Upload failed";
-      setFiles(prev => prev.map(x => x.id === id ? { ...x, status: "error", errorMessage: errMsg } : x));
+      setFiles(prev => prev.filter(x => x.id !== id));
+      setChatError(errMsg);
       return { ...entry, status: "error", errorMessage: errMsg };
     }
   }, []);
@@ -184,6 +223,62 @@ export default function App() {
     e.target.value = "";
     if (mode !== "chat") setMode("chat");
   }, [uploadFile, mode]);
+
+  // ── Voice Input ──
+
+  const startVoiceInput = useCallback(() => {
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) {
+      setChatError("Voice input is not supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    lastFinalIndexRef.current = -1;
+    const recognition = new SpeechRecognitionAPI() as any;
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event: any) => {
+      let transcript = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal && i > lastFinalIndexRef.current) {
+          transcript += event.results[i][0].transcript;
+          lastFinalIndexRef.current = i;
+        }
+      }
+      if (transcript) {
+        setInput(prev => prev + (prev ? " " : "") + transcript);
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecording(true);
+  }, []);
+
+  const stopVoiceInput = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsRecording(false);
+  }, []);
+
+  const toggleVoiceInput = useCallback(() => {
+    if (isRecording) {
+      stopVoiceInput();
+    } else {
+      startVoiceInput();
+    }
+  }, [isRecording, startVoiceInput, stopVoiceInput]);
 
   // ── Chat / Send Message ──
 
@@ -205,11 +300,17 @@ export default function App() {
     setIsTyping(true);
 
     try {
-      const data = await api.post<{ answer: string; sources: { source: string }[] }>("/api/chat", {
+      const data = await api.post<{ answer: string; sources: { source: string }[]; session_id: string }>("/api/chat", {
         question: input || "Please analyze the uploaded document.",
         company_id: String(user?.company_id ?? 1),
-        agent_type: "default",
+        agent_type: selectedModel,
+        session_id: currentSessionId || null,
+        files: files.filter(f => f.status === "ready").map(f => f.name),
       });
+      if (data.session_id) {
+        setCurrentSessionId(data.session_id);
+        setActiveConvId(data.session_id);
+      }
       const aiMsg: Message = {
         id: Math.random().toString(36).slice(2),
         role: "assistant",
@@ -218,6 +319,7 @@ export default function App() {
         citations: data.sources?.map((s, i) => ({ id: i + 1, source: s.source })) || [],
       };
       setMessages(prev => [...prev, aiMsg]);
+      loadSessions();
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : "An error occurred";
       setChatError(errMsg);
@@ -231,7 +333,7 @@ export default function App() {
     } finally {
       setIsTyping(false);
     }
-  }, [input, files, mode, user]);
+  }, [input, files, mode, user, currentSessionId, loadSessions, selectedModel]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -256,14 +358,15 @@ export default function App() {
     setCurrentSessionId(id);
     setMode("chat");
     setMessages([]);
+    setFiles([]);
     try {
-      const data = await api.get<{ id: string; title: string; messages: { role: string; content: string }[] }>(`/sessions/${id}`);
-      if (data.messages) {
-        const msgs: Message[] = data.messages.map((m: { role: string; content: string }) => ({
+      const data = await api.get<{ items: { role: string; content: string; created_at: string }[] }>(`/sessions/${id}/messages`);
+      if (data?.items) {
+        const msgs: Message[] = data.items.map((m: { role: string; content: string; created_at: string }) => ({
           id: Math.random().toString(36).slice(2),
           role: m.role as "user" | "assistant",
           content: m.content,
-          timestamp: new Date(),
+          timestamp: new Date(m.created_at || Date.now()),
         }));
         setMessages(msgs);
       }
@@ -271,6 +374,32 @@ export default function App() {
       setMessages([]);
     }
   };
+
+  const deleteConversation = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await api.delete(`/sessions/${id}`);
+      setSessions(prev => prev.filter(s => s.id !== id));
+      if (activeConvId === id) {
+        setActiveConvId(null);
+        setCurrentSessionId(null);
+        setMessages([]);
+      }
+    } catch {
+      // silently fail — user can retry
+    }
+  };
+
+  // ── Close model dropdown on outside click ──
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (modelRef.current && !modelRef.current.contains(e.target as Node)) {
+        setModelOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   // ── Loading state ──
 
@@ -289,12 +418,17 @@ export default function App() {
     return <HomePage onNavigate={(page) => { setMode(page as Mode); setAuthMode(page as "login" | "register"); }} />;
   }
 
-  if (mode === "login" || mode === "register") {
+  if (mode === "login" || mode === "register" || mode === "forgot-password" || mode === "reset-password") {
     return (
       <AuthPage
-        mode={mode === "login" ? authMode : "register"}
-        onToggle={() => setAuthMode(m => m === "login" ? "register" : "login")}
+        mode={mode as any}
+        resetToken={resetToken}
+        onToggle={() => {
+          if (mode === "forgot-password" || mode === "reset-password") setMode("login");
+          else setMode(prev => prev === "login" ? "register" : "login");
+        }}
         onSuccess={() => setMode("welcome")}
+        onForgotPassword={() => setMode("forgot-password")}
       />
     );
   }
@@ -391,10 +525,10 @@ export default function App() {
                 <p className="text-xs text-muted-foreground">No conversations yet</p>
               </div>
             )}
-            <ConversationGroup label="Today" items={groupedConvs.today} activeId={activeConvId} onSelect={selectConversation} />
-            <ConversationGroup label="Yesterday" items={groupedConvs.yesterday} activeId={activeConvId} onSelect={selectConversation} />
-            <ConversationGroup label="Last 7 Days" items={groupedConvs.last7} activeId={activeConvId} onSelect={selectConversation} />
-            <ConversationGroup label="Older" items={groupedConvs.older} activeId={activeConvId} onSelect={selectConversation} />
+            <ConversationGroup label="Today" items={groupedConvs.today} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
+            <ConversationGroup label="Yesterday" items={groupedConvs.yesterday} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
+            <ConversationGroup label="Last 7 Days" items={groupedConvs.last7} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
+            <ConversationGroup label="Older" items={groupedConvs.older} activeId={activeConvId} onSelect={selectConversation} onDelete={deleteConversation} />
           </div>
 
           <div className="border-t border-sidebar-border p-3 relative">
@@ -528,7 +662,7 @@ export default function App() {
                       </div>
                       <div className="space-y-2">
                         {sessions.slice(0, 5).map((conv) => (
-                          <button key={conv.id} onClick={() => selectConversation(conv.id)} className="w-full flex items-center gap-3 p-3 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all text-left group">
+                          <div key={conv.id} onClick={() => selectConversation(conv.id)} className="group flex items-center gap-3 p-3 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all text-left cursor-pointer">
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                               <MessageSquare size={15} />
                             </div>
@@ -537,7 +671,14 @@ export default function App() {
                               <p className="text-xs text-muted-foreground">{conv.preview}</p>
                             </div>
                             <span className="text-xs text-muted-foreground">{conv.date.toLocaleDateString()}</span>
-                          </button>
+                            <button
+                              onClick={(e) => deleteConversation(conv.id, e)}
+                              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-destructive transition-all flex-shrink-0"
+                              title="Delete conversation"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -619,7 +760,7 @@ export default function App() {
                     onKeyDown={handleKeyDown}
                     placeholder="Ask anything about your documents\u2026 (Shift+Enter for new line)"
                     rows={1}
-                    className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none leading-relaxed"
+                    className="w-full resize-none bg-transparent text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none leading-relaxed"
                     style={{ minHeight: 44, maxHeight: 180, fontFamily: "'Inter', sans-serif" }}
                     onInput={e => {
                       const el = e.currentTarget;
@@ -630,7 +771,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center justify-between px-3 pb-3">
                   <div className="flex items-center gap-1">
-                    <input ref={fileInputRef} type="file" multiple accept=".pdf,.docx,.xlsx,.pptx,.csv,.txt,.png,.jpg,.jpeg" className="hidden" onChange={handleFileInput} />
+                    <input ref={fileInputRef} type="file" multiple accept=".pdf,.docx,.txt,.xls,.xlsx,.csv" className="hidden" onChange={handleFileInput} />
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -638,9 +779,67 @@ export default function App() {
                     >
                       <Paperclip size={17} />
                     </button>
-                    <button className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Voice input">
+                    <button
+                      onClick={toggleVoiceInput}
+                      className={`p-2 rounded-xl transition-colors ${
+                        isRecording
+                          ? "text-red-500 bg-red-500/10 animate-pulse shadow-sm shadow-red-500/30"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                      title={isRecording ? "Stop recording" : "Voice input"}
+                    >
                       <Mic size={17} />
                     </button>
+                    {/* Model selector */}
+                    <div className="relative" ref={modelRef}>
+                      {(() => {
+                        const m = MODELS.find(x => x.id === selectedModel) ?? MODELS[0];
+                        const Icon = m.icon;
+                        return (
+                          <button
+                            onClick={() => setModelOpen(o => !o)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors border ${m.color} ${m.bg} ${m.border}`}
+                          >
+                            <Icon size={14} />
+                            <span>{m.label}</span>
+                            <ChevronDown size={11} className={`transition-transform ${modelOpen ? "rotate-180" : ""}`} />
+                          </button>
+                        );
+                      })()}
+                      <AnimatePresence>
+                        {modelOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                            className="absolute bottom-full left-0 mb-2 w-52 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-10"
+                          >
+                            {MODELS.map(m => {
+                              const Icon = m.icon;
+                              const active = selectedModel === m.id;
+                              return (
+                                <button
+                                  key={m.id}
+                                  onClick={() => { setSelectedModel(m.id); setModelOpen(false); }}
+                                  className={`w-full flex items-start gap-3 px-3.5 py-3 text-left transition-all ${active ? `${m.bg} ${m.border} border-l-2` : "hover:bg-muted/50 border-l-2 border-transparent"}`}
+                                >
+                                  <div className={`w-8 h-8 rounded-lg ${m.bg} flex items-center justify-center flex-shrink-0 mt-0.5 ${m.color}`}>
+                                    <Icon size={16} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <p className={`text-sm font-semibold ${active ? "text-foreground" : "text-foreground/90"}`}>{m.label}</p>
+                                      {active && <Check size={12} className="text-primary flex-shrink-0" />}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">{input.length > 0 ? `${input.length}` : ""}</span>
@@ -655,7 +854,7 @@ export default function App() {
                 </div>
               </div>
               <p className="text-center text-[11px] text-muted-foreground mt-2.5">
-                KnowMate can analyze PDFs, Word, Excel, PowerPoint, CSV, and images &middot; <kbd className="font-mono">Enter</kbd> to send
+                Supports PDF, DOCX, XLSX, PPTX, CSV, TXT, and images &middot; <kbd className="font-mono">Enter</kbd> to send
               </p>
             </div>
           </div>

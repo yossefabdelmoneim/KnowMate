@@ -1,4 +1,4 @@
-export type Mode = "home" | "welcome" | "chat" | "login" | "register" | "settings" | "profile";
+export type Mode = "home" | "welcome" | "chat" | "login" | "register" | "forgot-password" | "reset-password" | "settings" | "profile";
 
 export interface UploadedFile {
   id: string;

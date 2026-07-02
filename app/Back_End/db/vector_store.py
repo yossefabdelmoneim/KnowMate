@@ -90,19 +90,26 @@ def add_documents(
 def search_documents(
     query: str,
     company_id: str,
-    n_results: int = 5
+    n_results: int = 5,
+    file_names: list[str] | None = None,
 ):
     """
     Search only inside documents
     belonging to one company.
+    If file_names is provided, filter by those source names.
     """
+
+    where: dict = {"company_id": company_id}
+    if file_names is not None:
+        if not file_names:
+            where = {"company_id": "___NO_MATCH___"}
+        else:
+            where = {"$and": [{"company_id": company_id}, {"source": {"$in": file_names}}]}
 
     results = documents_collection.query(
         query_texts=[query],
-        where={
-            "company_id": company_id
-        },
-        n_results=n_results
+        where=where,
+        n_results=n_results,
     )
 
     if not results or not results.get("documents"):

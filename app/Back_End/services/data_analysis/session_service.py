@@ -114,7 +114,7 @@ class SessionService:
 
     @staticmethod
     def to_public(session: ChatSession, *, message_count: int = 0) -> SessionPublic:
-        from services.dataset_service import DatasetService
+        from app.Back_End.services.data_analysis.dataset_service import DatasetService
 
         dataset_public = (
             DatasetService.to_public(session.dataset) if session.dataset else None

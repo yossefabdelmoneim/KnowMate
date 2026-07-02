@@ -13,7 +13,7 @@ router = APIRouter(tags=["Documents"])
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
-ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt", ".xlsx", ".xls"}
+ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt", ".xlsx", ".xls", ".csv"}
 
 
 class IngestResponse(BaseModel):
@@ -106,9 +106,10 @@ async def upload(
     The document will be processed and stored in the knowledge base for searching.
     """
     file_path = save_upload(file)
+    original_name = file.filename or file_path.name
 
     try:
-        return ingest(str(file_path), company_id)
+        return ingest(str(file_path), company_id, source=original_name)
     except ValueError as exc:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -169,9 +170,10 @@ async def update(
     The old document chunks will be replaced with new ones from the new file.
     """
     file_path = save_upload(file)
+    original_name = file.filename or file_path.name
 
     try:
-        result = replace_document(str(file_path), company_id, doc_id)
+        result = replace_document(str(file_path), company_id, doc_id, source=original_name)
     except ValueError as exc:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc

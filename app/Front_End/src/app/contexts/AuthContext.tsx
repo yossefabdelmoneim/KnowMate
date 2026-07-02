@@ -14,17 +14,17 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(getStoredUser);
-  const [loading, setLoading] = useState(!getStoredUser());
+  const token = localStorage.getItem("knowmate_token");
+  const [loading, setLoading] = useState(!!token);
 
   useEffect(() => {
-    const token = localStorage.getItem("knowmate_token");
-    if (token && !getStoredUser()) {
-      setLoading(true);
+    if (token) {
       getMe().then((u) => {
-        if (u) setUser(u);
+        setUser(u);
         setLoading(false);
       });
     } else {
+      setUser(null);
       setLoading(false);
     }
   }, []);

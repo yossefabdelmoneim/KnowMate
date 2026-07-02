@@ -31,10 +31,11 @@ from app.Back_End.models.data_analysis._mixins import TimestampMixin, UUIDPkMixi
 
 class ApiKey(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "api_keys"
+    __table_args__ = {'extend_existing': True}
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("data_analysis_users.id", ondelete="CASCADE"), # Updated ForeignKey
         nullable=False,
         index=True,
     )

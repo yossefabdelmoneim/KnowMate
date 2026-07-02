@@ -19,23 +19,23 @@ export function ChatMessage({ msg, onFeedback }: { msg: Message; onFeedback: (id
       if (line.startsWith("### ")) return <h3 key={i} className="text-base font-semibold mt-3 mb-1.5 text-foreground">{line.slice(4)}</h3>;
       if (line.startsWith("```")) return null;
       if (line.startsWith("> ")) return (
-        <blockquote key={i} className="border-l-2 border-primary/50 pl-3 my-2 text-muted-foreground italic text-sm">
+        <blockquote key={i} className="border-l-2 border-primary/50 pl-3 my-2 text-muted-foreground italic text-[15px]">
           {line.slice(2)}
         </blockquote>
       );
       if (line.startsWith("- ")) return (
-        <li key={i} className="ml-4 text-sm text-foreground/90 my-0.5 list-disc">{line.slice(2).replace(/\*\*(.*?)\*\*/g, "$1")}</li>
+        <li key={i} className="ml-4 text-[15px] text-foreground/90 my-0.5 list-disc">{line.slice(2).replace(/\*\*(.*?)\*\*/g, "$1")}</li>
       );
       if (/^\d+\./.test(line)) return (
-        <li key={i} className="ml-4 text-sm text-foreground/90 my-0.5 list-decimal">{line.replace(/^\d+\.\s*/, "").replace(/\*\*(.*?)\*\*/g, "$1")}</li>
+        <li key={i} className="ml-4 text-[15px] text-foreground/90 my-0.5 list-decimal">{line.replace(/^\d+\.\s*/, "").replace(/\*\*(.*?)\*\*/g, "$1")}</li>
       );
       if (line.startsWith("*Source:") || line.startsWith("*")) return (
-        <p key={i} className="text-xs text-muted-foreground mt-3 italic">{line.replace(/\*/g, "")}</p>
+        <p key={i} className="text-sm text-muted-foreground mt-3 italic">{line.replace(/\*/g, "")}</p>
       );
       if (line.trim() === "") return <br key={i} />;
 
       const boldProcessed = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-      return <p key={i} className="text-sm text-foreground/90 my-1" dangerouslySetInnerHTML={{ __html: boldProcessed }} />;
+      return <p key={i} className="text-[15px] text-foreground/90 my-1" dangerouslySetInnerHTML={{ __html: boldProcessed }} />;
     });
   };
 
@@ -46,14 +46,14 @@ export function ChatMessage({ msg, onFeedback }: { msg: Message; onFeedback: (id
           {msg.files && msg.files.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2 justify-end">
               {msg.files.map((f, i) => (
-                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-lg font-medium">
-                  <FileText size={11} /> {f}
+                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-sm rounded-lg font-medium">
+                  <FileText size={13} /> {f}
                 </span>
               ))}
             </div>
           )}
           <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+            <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
           </div>
         </div>
       </motion.div>
@@ -68,16 +68,16 @@ export function ChatMessage({ msg, onFeedback }: { msg: Message; onFeedback: (id
             <Sparkles size={13} className="text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm leading-relaxed text-foreground/90 prose prose-sm max-w-none">
+            <div className="text-[15px] leading-relaxed text-foreground/90 prose max-w-none">
               {renderContent(msg.content)}
             </div>
 
             {msg.citations && msg.citations.length > 0 && (
               <div className="mt-4 pt-3 border-t border-border">
-                <p className="text-xs font-semibold text-muted-foreground mb-2">Sources</p>
+                <p className="text-sm font-semibold text-muted-foreground mb-2">Sources</p>
                 <div className="flex flex-wrap gap-1.5">
                   {msg.citations.map((c) => (
-                    <span key={c.id} className="text-xs px-2 py-0.5 bg-muted rounded-md text-muted-foreground">
+                    <span key={c.id} className="text-sm px-2 py-0.5 bg-muted rounded-md text-muted-foreground">
                       [{c.id}] {c.source}
                     </span>
                   ))}

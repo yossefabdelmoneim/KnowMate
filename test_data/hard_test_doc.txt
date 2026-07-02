@@ -1,0 +1,21 @@
+
+KnowMate — Internal Training & Policy Document
+
+1. RETURN POLICY
+Customers may return any product within 45 days of purchase.
+Items must be in original packaging. Refunds are issued within
+3 business days after inspection.
+
+2. HR POLICY
+All employees are entitled to 25 paid vacation days per year.
+Parental leave: 16 weeks fully paid. Sick leave: 10 days per year.
+Remote work: up to 3 days per week with manager approval.
+Health insurance: fully covered including dental and vision.
+
+3. MARKETING GUIDELINES
+Brand voice: professional, confident, approachable.
+Tagline: "Know your data. Know your world."
+Target audience: enterprise decision-makers (CTOs, VPs of Eng).
+Key differentiators: on-premise deployment, no data leaks,
+local LLM inference, RAG-powered accuracy.
+Q4 campaign focus: security-first AI for regulated industries.

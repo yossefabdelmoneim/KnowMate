@@ -7,6 +7,7 @@ from app.Back_End.db.session import Base
 
 class Company(Base):
     __tablename__ = "companies"
+    __table_args__ = {'extend_existing': True} # Added for consistency
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
@@ -18,6 +19,7 @@ class Company(Base):
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True} # Added to resolve the InvalidRequestError
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
@@ -29,11 +31,13 @@ class User(Base):
 
     company = relationship("Company", back_populates="users")
     documents = relationship("Document", back_populates="user")
-    chat_sessions = relationship("ChatSession", back_populates="user")
+    # Updated relationship name to reflect the renamed ChatSession
+    chat_sessions = relationship("LegacyChatSession", back_populates="user")
 
 
 class Document(Base):
     __tablename__ = "documents"
+    __table_args__ = {'extend_existing': True} # Added for consistency
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -47,8 +51,10 @@ class Document(Base):
     user = relationship("User", back_populates="documents")
 
 
-class ChatSession(Base):
-    __tablename__ = "chat_sessions"
+# Renamed ChatSession to LegacyChatSession to avoid conflict
+class LegacyChatSession(Base):
+    __tablename__ = "legacy_chat_sessions" # Renamed table
+    __table_args__ = {'extend_existing': True} # Added for consistency
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -61,19 +67,22 @@ class ChatSession(Base):
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
+    __table_args__ = {'extend_existing': True} # Added for consistency
 
     id = Column(Integer, primary_key=True, index=True)
-    session_id = Column(Integer, ForeignKey("chat_sessions.id"), nullable=False)
+    # Updated ForeignKey to reference the renamed chat sessions table
+    session_id = Column(Integer, ForeignKey("legacy_chat_sessions.id"), nullable=False)
     role = Column(String(50), nullable=False)
     content = Column(Text, nullable=False)
     sources = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    session = relationship("ChatSession", back_populates="messages")
+    session = relationship("LegacyChatSession", back_populates="messages")
 
 
 class PendingCompanyRegistration(Base):
     __tablename__ = "pending_registrations"
+    __table_args__ = {'extend_existing': True} # Added for consistency
 
     id = Column(Integer, primary_key=True, index=True)
     company_name = Column(String(255), nullable=False)
