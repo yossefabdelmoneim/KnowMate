@@ -8,6 +8,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
+    nginx \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # Install CPU-only torch first (avoids pulling 2GB of CUDA libs)
@@ -29,6 +31,49 @@ ENV CHROMA_DIR=/tmp/chroma_db
 
 EXPOSE 7860
 
-USER user
+RUN rm -f /etc/nginx/sites-enabled/default
 
-CMD ["uvicorn", "app.Back_End.main:app", "--host", "0.0.0.0", "--port", "7860"]
+COPY <<'EOF' /etc/nginx/sites-available/knowmate.conf
+server {
+    listen 7860;
+    client_max_body_size 50M;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 600s;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+    }
+}
+EOF
+
+RUN ln -sf /etc/nginx/sites-available/knowmate.conf /etc/nginx/sites-enabled/
+
+COPY <<'EOF' /etc/supervisor/conf.d/supervisord.conf
+[supervisord]
+nodaemon=true
+user=root
+
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:uvicorn]
+command=uvicorn app.Back_End.main:app --host 127.0.0.1 --port 8000
+user=user
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+EOF
+
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
