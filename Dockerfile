@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     nginx \
     supervisor \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /var/run/nginx /etc/nginx/sites-enabled
 
 # Install CPU-only torch first (avoids pulling 2GB of CUDA libs)
 RUN pip install --index-url https://download.pytorch.org/whl/cpu torch==2.12.1
@@ -31,7 +32,7 @@ ENV CHROMA_DIR=/tmp/chroma_db
 
 EXPOSE 7860
 
-RUN rm -f /etc/nginx/sites-enabled/default
+RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf
 
 COPY <<'EOF' /etc/nginx/sites-available/knowmate.conf
 server {
