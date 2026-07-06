@@ -95,18 +95,15 @@ export function AuthPage({ mode, onToggle, onSuccess, onForgotPassword, resetTok
             <Mail size={28} className="text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-2" style={{ fontFamily: "'Instrument Sans', sans-serif" }}>
-            {isReset ? "Check your email" : "Check your email"}
+            {isReset ? "Check your email" : "Successfully registered"}
           </h1>
           <p className="text-sm text-muted-foreground mb-6">
             {verificationEmail ? (
-              <>We sent a verification link to <strong className="text-foreground">{verificationEmail}</strong></>
+              <>Your account has been created successfully.</>
             ) : (
               successMsg
             )}
           </p>
-          {verificationEmail && (
-            <p className="text-xs text-muted-foreground">Click the link in the email to activate your account, then sign in.</p>
-          )}
           <button onClick={() => { onToggle(); setVerificationEmail(""); setSuccessMsg(""); }} className="mt-6 text-sm text-primary hover:underline font-medium">
             {isReset ? "Back to sign in" : "Go to sign in"}
           </button>
