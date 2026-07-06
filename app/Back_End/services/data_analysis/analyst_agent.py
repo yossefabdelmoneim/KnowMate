@@ -172,6 +172,28 @@ class AnalystAgent:
 
             result: AnalysisResult = outcome.result  # type: ignore[assignment]
 
+            
+            # --- Stage 8b: auto-generate a chart if the LLM didn't -------
+            existing_charts: list[ChartData] = []
+            if result.figures:
+                existing_charts = result.figures
+            elif result.figure is not None:
+                existing_charts = [result.figure]
+
+            if not existing_charts and result.table:
+                intent_values_for_chart = [i.value for i in intents]
+                auto_chart = auto_generate_chart(
+                    table=result.table,
+                    intents=intent_values_for_chart,
+                    user_question=request.question,
+                )
+                if auto_chart is not None:
+                    existing_charts = [auto_chart]
+                    logger.info("Auto-generated a %s chart from table data.", auto_chart.type)
+                    result.figure = auto_chart
+                    result.figures = existing_charts
+                    
+
             insight_text = self._generate_insight(
                 request.question, result, intents,
             )
