@@ -48,6 +48,7 @@ from app.Back_End.schemas.data_analysis.message import (
     MessageCreateRequest, ReportCreateRequest, ReportResponse, ReportSection,
 )
 from app.Back_End.services.data_analysis.analyst_agent import AnalystAgent
+from app.Back_End.services.data_analysis.chart_generator import auto_generate_chart
 from app.Back_End.services.data_analysis.dataset_service import DatasetService
 from app.Back_End.services.data_analysis.memory_service import MemoryService
 
@@ -333,6 +334,17 @@ class ReportService:
                 charts = result.figures
             elif result.figure is not None:
                 charts = [result.figure]
+
+            # Auto-generate a chart if the LLM didn't produce one.
+            if not charts and result.table:
+                auto_chart = auto_generate_chart(
+                    table=result.table,
+                    intents=[i.value for i in intents],
+                    user_question=sub_question,
+                )
+                if auto_chart is not None:
+                    charts = [auto_chart]
+                    logger.info("Section %s: auto-generated a chart.", section_title)
 
         return ReportSection(
             title=section_title,
