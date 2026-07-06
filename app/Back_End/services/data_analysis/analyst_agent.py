@@ -35,6 +35,7 @@ from app.Back_End.schemas.data_analysis.message import (
     DatasetProfile, ExtractedEntities, Intent, MessageCreateRequest,
 )
 from app.Back_End.services.data_analysis.agent_service import AgentContext, AgentService
+from app.Back_End.services.data_analysis.chart_generator import auto_generate_chart
 from app.Back_End.services.data_analysis.dataset_service import DatasetService
 from app.Back_End.services.data_analysis.memory_service import MemoryService
 
@@ -181,6 +182,11 @@ class AnalystAgent:
                 charts = result.figures
             elif result.figure is not None:
                 charts = [result.figure]
+
+            if not charts and result.table:
+                auto = auto_generate_chart(result.table, intents, request.question)
+                if auto:
+                    charts = [auto]
 
             response = AnalyzeResponse(
                 success=True,
