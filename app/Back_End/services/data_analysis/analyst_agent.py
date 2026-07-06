@@ -37,6 +37,7 @@ from app.Back_End.schemas.data_analysis.message import (
 from app.Back_End.services.data_analysis.agent_service import AgentContext, AgentService
 from app.Back_End.services.data_analysis.dataset_service import DatasetService
 from app.Back_End.services.data_analysis.memory_service import MemoryService
+from app.Back_End.services.data_analysis.chart_generator import auto_generate_chart
 
 logger = logging.getLogger(__name__)
 
