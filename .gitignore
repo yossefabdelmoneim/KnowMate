@@ -12,11 +12,12 @@ node_modules/
 
 # Uploads
 app/Back_End/uploads/
+uploads/
 
 # Chroma DB (optional)
 app/Back_End/chroma_db/
+chroma_db/
 
 # Environment variables
 .env
-echo "chroma_db/" >> .gitignore
 /app/generated/prisma
