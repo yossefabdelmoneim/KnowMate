@@ -269,6 +269,56 @@ def admin_list_users(
     return result
 
 
+@router.get(
+    "/admin/data",
+    response_model=dict,
+    summary="View all users and their chat data (admin only)",
+)
+def admin_view_all_data(
+    db: Session = Depends(get_db),
+    current_user: DataAnalysisUser = Depends(get_current_user),
+):
+    if current_user.role not in ("admin", "COMPANY_ADMIN"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.Back_End.models.data_analysis.chat_session import ChatSession
+    from app.Back_End.models.data_analysis.message import Message
+
+    users_data = []
+    users = db.query(DataAnalysisUser).all()
+    for u in users:
+        sessions = db.query(ChatSession).filter(ChatSession.user_id == u.id).all()
+        sessions_data = []
+        for s in sessions:
+            messages = db.query(Message).filter(Message.session_id == s.id).order_by(Message.seq).all()
+            sessions_data.append({
+                "session_id": str(s.id),
+                "title": s.title,
+                "created_at": str(s.created_at) if s.created_at else None,
+                "message_count": len(messages),
+                "messages": [
+                    {
+                        "seq": m.seq,
+                        "role": m.role,
+                        "content_preview": m.content[:200] if m.content else None,
+                        "created_at": str(m.created_at) if m.created_at else None,
+                    }
+                    for m in messages
+                ],
+            })
+        users_data.append({
+            "id": str(u.id),
+            "email": u.email,
+            "full_name": u.full_name,
+            "role": u.role,
+            "is_active": u.is_active,
+            "session_count": len(sessions),
+            "sessions": sessions_data,
+        })
+
+    return {"users": users_data}
+
+
 @router.delete(
     "/admin/users/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
