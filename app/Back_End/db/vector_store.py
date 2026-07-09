@@ -1,10 +1,22 @@
 import chromadb
 import uuid
 
+from chromadb.utils.embedding_functions import (
+    SentenceTransformerEmbeddingFunction
+)
+
+# إنشاء الـ Client
 client = chromadb.PersistentClient(path="./chroma_db")
 
+# استخدام BGE Embedding Model
+embedding_function = SentenceTransformerEmbeddingFunction(
+    model_name="BAAI/bge-small-en-v1.5"
+)
+
+# إنشاء الـ Collection
 documents_collection = client.get_or_create_collection(
-    "hr_documents"
+    name="hr_documents",
+    embedding_function=embedding_function
 )
 
 
@@ -72,7 +84,7 @@ def add_documents(
 def search_documents(
     query: str,
     company_id: str,
-    n_results: int = 5
+    n_results: int = 10
 ):
     """
     Search only inside documents
