@@ -132,7 +132,7 @@ class Settings(BaseSettings):
     # Memory
     # ==========================================================
 
-    short_term_memory_window: int = 6
+    short_term_memory_window: int = 40
 
     long_term_memory_enabled: bool = True
 
