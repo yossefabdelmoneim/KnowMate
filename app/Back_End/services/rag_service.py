@@ -1,5 +1,5 @@
 from app.Back_End.core.llm import get_llm_client
-from app.Back_End.prompts.customer_agent import RAG_PROMPT
+from app.Back_End.prompts.customer_agent import RAG_PROMPT, GENERAL_FALLBACK_PROMPT
 from app.Back_End.prompts.marketing_agent import MARKETING_PROMPT
 from app.Back_End.services.retrieval import search_mmr
 
@@ -40,8 +40,10 @@ class RAGService:
         context = format_docs(docs) if docs else ""
 
         if not context:
+            prompt = GENERAL_FALLBACK_PROMPT.format(question=question)
+            answer = self.llm_client.chat(user_prompt=prompt)
             return {
-                "answer": "No relevant information found. Please upload a document first.",
+                "answer": answer,
                 "sources": []
             }
 

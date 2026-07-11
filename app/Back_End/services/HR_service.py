@@ -24,13 +24,7 @@ def ask_hr(
         file_names=files,
     )
 
-    if not context:
-        return {
-            "answer": "I couldn't find this information in the HR documentation.",
-            "source": []
-        }
-
-    if files:
+    if files and context:
         file_list = "The user has uploaded the following files: " + ", ".join(files)
         context = [file_list] + context
 
