@@ -9,7 +9,7 @@ import pandas as pd
 from app.Back_End.schemas.data_analysis.message import ChartData
 
 logger = logging.getLogger(__name__)
-_CHART_WORTHY_INTENTS = {"visualization","sorting","aggregation","comparison","distribution","trend_analysis","correlation"}
+_CHART_WORTHY_INTENTS = {"visualization","sorting","aggregation","comparison","distribution","trend_analysis","correlation","summary","statistics"}
 
 
 def auto_generate_chart(table, intents, user_question=""):
@@ -38,8 +38,13 @@ def _pick(df, numeric_cols, intents, user_asked):
     if "distribution" in intents: return "hist"
     if "correlation" in intents and len(numeric_cols)>=2: return "scatter"
     if "trend_analysis" in intents and has_date: return "line"
-    if (user_asked or any(i in _CHART_WORTHY_INTENTS for i in intents)) and other: return "bar"
-    if user_asked: return "hist"
+    if other:
+        if any(i in _CHART_WORTHY_INTENTS for i in intents):
+            return "bar"
+        if user_asked or len(numeric_cols) == 1:
+            return "bar"
+    if len(numeric_cols) >= 1:
+        return "hist"
     return None
 
 

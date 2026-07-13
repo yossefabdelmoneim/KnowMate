@@ -184,7 +184,8 @@ class AnalystAgent:
                 charts = [result.figure]
 
             if not charts and result.table:
-                auto = auto_generate_chart(result.table, intents, request.question)
+                intent_strs = [i.value for i in intents]
+                auto = auto_generate_chart(result.table, intent_strs, request.question)
                 if auto:
                     charts = [auto]
 
