@@ -1,6 +1,9 @@
 from app.Back_End.core.llm import get_llm_client
-from app.Back_End.prompts.customer_agent import RAG_PROMPT, GENERAL_FALLBACK_PROMPT
-from app.Back_End.prompts.marketing_agent import MARKETING_PROMPT
+from app.Back_End.prompts.customer_agent import (
+    RAG_PROMPT, RAG_SYSTEM_PROMPT,
+    GENERAL_FALLBACK_PROMPT, FALLBACK_SYSTEM_PROMPT,
+)
+from app.Back_End.prompts.marketing_agent import MARKETING_PROMPT, MARKETING_SYSTEM_PROMPT
 from app.Back_End.services.retrieval import search_mmr
 
 
@@ -10,6 +13,11 @@ def format_docs(docs):
         formatted.append(f"[Source {i + 1}]\n{doc.page_content}")
     return "\n\n".join(formatted)
 
+
+SYSTEM_PROMPTS = {
+    "general": RAG_SYSTEM_PROMPT,
+    "marketing": MARKETING_SYSTEM_PROMPT,
+}
 
 PROMPTS = {
     "general": RAG_PROMPT,
@@ -41,7 +49,10 @@ class RAGService:
 
         if not context:
             prompt = GENERAL_FALLBACK_PROMPT.format(question=question)
-            answer = self.llm_client.chat(user_prompt=prompt)
+            answer = self.llm_client.chat(
+                user_prompt=prompt,
+                system_prompt=FALLBACK_SYSTEM_PROMPT,
+            )
             return {
                 "answer": answer,
                 "sources": []
@@ -57,7 +68,11 @@ class RAGService:
             question=question
         )
 
-        answer = self.llm_client.chat(user_prompt=prompt)
+        system_prompt = SYSTEM_PROMPTS.get(self.prompt_type)
+        answer = self.llm_client.chat(
+            user_prompt=prompt,
+            system_prompt=system_prompt,
+        )
 
         seen = set()
         unique_sources = []

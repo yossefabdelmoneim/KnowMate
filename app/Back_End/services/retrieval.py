@@ -3,10 +3,8 @@ from app.Back_End.db.vector_store import get_vector_store
 
 def _build_filter(company_id: str, file_names: list[str] | None = None) -> dict:
     base = {"company_id": company_id}
-    if file_names is None:
-        return base
     if not file_names:
-        return {"company_id": "___NO_MATCH___"}
+        return base
     return {"$and": [base, {"source": {"$in": file_names}}]}
 
 
