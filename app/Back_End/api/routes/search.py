@@ -60,7 +60,7 @@ def search(
     Returns the most relevant documents based on the query.
     Uses MMR (Maximal Marginal Relevance) for diverse results.
     """
-    docs = search_mmr(req.query, req.company_id)
+    docs = search_mmr(req.query, req.company_id, user_id=str(current_user.id))
 
     return [
         SearchResult(content=d.page_content, metadata=d.metadata)

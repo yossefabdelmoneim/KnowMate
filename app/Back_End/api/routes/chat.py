@@ -181,6 +181,7 @@ def chat(
             company_id=request.company_id,
             question=request.question,
             files=effective_files,
+            user_id=str(current_user.id),
         )
     elif request.agent_type == "general" and any(_is_data_file(f) for f in effective_files):
         data_files = [f for f in effective_files if _is_data_file(f)]
@@ -194,6 +195,7 @@ def chat(
                 question=request.question,
                 company_id=request.company_id,
                 files=effective_files,
+                user_id=str(current_user.id),
             )
     else:
         prompt_type = request.agent_type if request.agent_type in ("marketing",) else "general"
@@ -202,6 +204,7 @@ def chat(
             question=request.question,
             company_id=request.company_id,
             files=effective_files,
+            user_id=str(current_user.id),
         )
 
     _persist_message(db, session_id, "user", request.question)

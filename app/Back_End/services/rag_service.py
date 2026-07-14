@@ -30,7 +30,7 @@ class RAGService:
         self.llm_client = get_llm_client()
         self.prompt_type = prompt_type
 
-    def generate_answer(self, question: str, company_id: str, files: list[str] | None = None):
+    def generate_answer(self, question: str, company_id: str, files: list[str] | None = None, user_id: str | None = None):
         q = question.strip().lower()
         greetings = {"hi", "hello", "hey", "good morning", "good afternoon", "good evening"}
         if q in greetings or q in {g + "!" for g in greetings} or q in {g + "," for g in greetings}:
@@ -43,6 +43,7 @@ class RAGService:
             query=question,
             company_id=company_id,
             file_names=files,
+            user_id=user_id,
         )
 
         context = format_docs(docs) if docs else ""

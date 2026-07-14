@@ -77,28 +77,31 @@ def split_docs(docs):
     return splitter.split_documents(docs)
 
 
-def add_metadata(chunks, company_id, doc_id=None, source=None):
+def add_metadata(chunks, company_id, user_id=None, doc_id=None, source=None):
     doc_id = doc_id or str(uuid.uuid4()) # Generate a unique document ID
 
     for i, c in enumerate(chunks):
-        c.metadata.update({
-            "doc_id": doc_id, #All chunks from the same document get the same ID
+        meta = {
+            "doc_id": doc_id,
             "chunk_id": i,
             "company_id": company_id,
             "source": source or "",
-        })
+        }
+        if user_id is not None:
+            meta["user_id"] = user_id
+        c.metadata.update(meta)
 
     return chunks
 
 
-def build_chunks(path: str, company_id: str, doc_id: str | None = None, source: str | None = None):
+def build_chunks(path: str, company_id: str, user_id: str | None = None, doc_id: str | None = None, source: str | None = None):
     docs = load_document(path)
     chunks = split_docs(docs)
 
     if not chunks:
         raise ValueError("Document did not contain any readable text.")
 
-    return add_metadata(chunks, company_id, doc_id, source)
+    return add_metadata(chunks, company_id, user_id, doc_id, source)
 
 
 def add_chunks(chunks):
@@ -111,8 +114,8 @@ def add_chunks(chunks):
     }
 
 
-def ingest(path: str, company_id: str, doc_id: str | None = None, source: str | None = None):
-    chunks = build_chunks(path, company_id, doc_id, source)
+def ingest(path: str, company_id: str, user_id: str | None = None, doc_id: str | None = None, source: str | None = None):
+    chunks = build_chunks(path, company_id, user_id, doc_id, source)
     return add_chunks(chunks)
 
 

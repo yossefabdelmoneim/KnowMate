@@ -24,6 +24,7 @@ def ask_hr(
     company_id: str,
     question: str,
     files: list[str] | None = None,
+    user_id: str | None = None,
 ):
     """
     Handle HR requests using query routing.
@@ -47,6 +48,7 @@ def ask_hr(
         query=question,
         company_id=company_id,
         file_names=files,
+        user_id=user_id,
     )
 
     if files and context:

@@ -19,10 +19,15 @@ def get_vector_store() -> Chroma:
     )
 
 
-def _build_where(company_id: str, file_names: list[str] | None = None) -> dict:
-    if not file_names:
-        return {"company_id": company_id}
-    return {"$and": [{"company_id": company_id}, {"source": {"$in": file_names}}]}
+def _build_where(company_id: str, file_names: list[str] | None = None, user_id: str | None = None) -> dict:
+    clauses = [{"company_id": company_id}]
+    if user_id is not None:
+        clauses.append({"user_id": user_id})
+    if file_names:
+        clauses.append({"source": {"$in": file_names}})
+    if len(clauses) == 1:
+        return clauses[0]
+    return {"$and": clauses}
 
 
 def delete_documents_by_source(source: str, company_id: str):
@@ -51,9 +56,10 @@ def search_documents(
     company_id: str,
     n_results: int = 5,
     file_names: list[str] | None = None,
+    user_id: str | None = None,
 ):
     db = get_vector_store()
-    where = _build_where(company_id, file_names)
+    where = _build_where(company_id, file_names, user_id)
     docs = db.similarity_search(query, k=n_results, filter=where)
     if not docs:
         return [], []

@@ -109,7 +109,7 @@ async def upload(
     original_name = file.filename or file_path.name
 
     try:
-        return ingest(str(file_path), company_id, source=original_name)
+        return ingest(str(file_path), company_id, user_id=str(current_user.id), source=original_name)
     except ValueError as exc:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
