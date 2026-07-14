@@ -19,10 +19,8 @@ def get_vector_store() -> Chroma:
     )
 
 
-def _build_where(company_id: str, file_names: list[str] | None = None, user_id: str | None = None) -> dict:
+def _build_where(company_id: str, file_names: list[str] | None = None) -> dict:
     clauses = [{"company_id": company_id}]
-    if user_id is not None:
-        clauses.append({"user_id": user_id})
     if file_names:
         clauses.append({"source": {"$in": file_names}})
     if len(clauses) == 1:
@@ -59,8 +57,11 @@ def search_documents(
     user_id: str | None = None,
 ):
     db = get_vector_store()
-    where = _build_where(company_id, file_names, user_id)
-    docs = db.similarity_search(query, k=n_results, filter=where)
+    where = _build_where(company_id, file_names)
+    docs = db.similarity_search(query, k=n_results * 2, filter=where)
+    if user_id is not None:
+        docs = [d for d in docs if not d.metadata.get("user_id") or d.metadata["user_id"] == user_id]
+    docs = docs[:n_results]
     if not docs:
         return [], []
     sources = list({d.metadata.get("source", "") for d in docs})
