@@ -21,3 +21,10 @@ chroma_db/
 # Environment variables
 .env
 /app/generated/prisma
+
+# Log files
+*.log
+uvicorn*.log
+
+# Build output
+app/Front_End/dist/

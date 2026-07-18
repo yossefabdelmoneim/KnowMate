@@ -1,1 +1,0 @@
-http://localhost:8000/companies/verify?token=cUEw2AW5ilgsRYTBkp8R5kaATKwDXypjP_IKvYIf4Ad1KRUCSrtulk73MN4_Sxt3

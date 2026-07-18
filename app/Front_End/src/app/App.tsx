@@ -3,7 +3,7 @@ import {
   Plus, Search, ChevronLeft, ChevronRight, Send, Paperclip,
   Mic, Sun, Moon, FileText, FileSpreadsheet, FileImage,
   File, X, Check, Sparkles, BookOpen, Table, Zap,
-  MessageSquare, Settings, LogOut, User, HelpCircle,
+  MessageSquare, Settings, LogOut, User,
   ChevronDown, Loader2, AlertCircle, BrainCircuit,
   Users, Megaphone, Trash2, Menu
 } from "lucide-react";
@@ -527,7 +527,6 @@ export default function App() {
                       {[
                         { icon: <User size={13} />, label: "Profile", action: () => { setMode("profile"); setShowUserMenu(false); } },
                         { icon: <Settings size={13} />, label: "Settings", action: () => { setMode("settings"); setShowUserMenu(false); } },
-                        { icon: <HelpCircle size={13} />, label: "Help Center", action: () => setShowUserMenu(false) },
                       ].map((item) => (
                         <button key={item.label} onClick={item.action} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                           <span className="text-muted-foreground">{item.icon}</span>
@@ -712,7 +711,6 @@ export default function App() {
                     <div className="mb-8">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-sm font-semibold text-foreground">Recent conversations</h3>
-                        <button onClick={() => sessions.length > 0 && selectConversation(sessions[0].id)} className="text-xs text-primary hover:underline">View all</button>
                       </div>
                       <div className="space-y-2">
                         {sessions.slice(0, 5).map((conv) => (

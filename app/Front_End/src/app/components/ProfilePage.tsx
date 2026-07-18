@@ -1,13 +1,8 @@
-import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { ChevronLeft, User, Mail, Calendar, Building, Shield, Loader2, AlertCircle } from "lucide-react";
+import { ChevronLeft, User, Mail, Calendar, Building, Shield } from "lucide-react";
 import type { User as UserType } from "../services/auth";
-import { api } from "../services/api";
 
 export function ProfilePage({ user, onBack }: { user: UserType | null; onBack: () => void }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
   return (
     <div className="h-full flex flex-col bg-background">
       <div className="border-b border-border px-8 py-5 flex items-center gap-4">
@@ -18,20 +13,8 @@ export function ProfilePage({ user, onBack }: { user: UserType | null; onBack: (
         <h1 className="text-lg font-semibold text-foreground">Profile</h1>
       </div>
 
-      {error && (
-        <div className="mx-8 mt-4 flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-sm text-destructive">
-          <AlertCircle size={14} className="flex-shrink-0" />
-          {error}
-        </div>
-      )}
-
       <div className="flex-1 overflow-y-auto p-8">
         <div className="max-w-lg mx-auto">
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 size={24} className="animate-spin text-primary" />
-            </div>
-          ) : (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <div className="flex items-center gap-5 p-6 bg-card border border-border rounded-2xl">
                 <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center text-primary text-xl font-semibold">
@@ -56,7 +39,6 @@ export function ProfilePage({ user, onBack }: { user: UserType | null; onBack: (
                 <ProfileField icon={<Calendar size={15} />} label="Joined" value={user?.created_at ? new Date(user.created_at).toLocaleDateString() : "-"} />
               </div>
             </motion.div>
-          )}
         </div>
       </div>
     </div>

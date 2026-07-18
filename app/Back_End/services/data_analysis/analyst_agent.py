@@ -24,6 +24,7 @@ from app.Back_End.core.llm import get_llm_client
 from app.Back_End.execution.executor import ExecutionOutcome, execute_code
 from app.Back_End.models.data_analysis.message import Message
 from app.Back_End.prompts.data_analysis.code_generation import build_code_generation_prompt
+from app.Back_End.prompts.data_analysis.code_retry import build_code_retry_prompt
 from app.Back_End.prompts.data_analysis.insight_generation import build_insight_generation_prompt
 from app.Back_End.prompts.data_analysis.nlu.column_resolver import resolve_columns
 from app.Back_End.prompts.data_analysis.nlu.entity_extractor import extract_entities

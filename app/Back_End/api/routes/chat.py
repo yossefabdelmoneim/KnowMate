@@ -69,9 +69,11 @@ def _run_data_analysis(question: str, file_bytes: bytes, filename: str) -> dict:
 
     llm = get_llm_client()
     prompt = (
-        "You are a data analyst. Given the dataset description below and the "
+        "You are a data analyst assistant. Given the dataset description below and the "
         "user's question, provide a clear, insightful analysis. Include specific "
         "numbers, trends, and comparisons.\n\n"
+        "If you cannot answer the question from the available data columns, clearly state "
+        "what information is missing and provide general guidance on how to approach the analysis.\n\n"
         f"{dataset_info}\n\n"
         f"**User question**: {question}"
     )
